@@ -8,10 +8,16 @@ import java.util.List;
 public class Main extends JFrame {
     private static final WorldMap map = new WorldMap(100, 100);
     private static final int CELL_SIZE = 7;
-    private static final double ROTATE_ANGLE = Math.PI/8;
-    private static final double VIEW_ANGLE = Math.PI/2;
 
-    private static int coneRadius = 15;
+    private static double rotateAngle = Math.PI/8;
+    private static final double ROTATE_ANGLE_STEP = Math.PI/32;
+
+    private static double viewAngle = Math.PI/2;
+    private static final double VIEW_ANGLE_STEP = Math.PI/32;
+
+    private static double coneRadius = 15;
+    private static final double CONE_RADIUS_STEP = 0.5;
+
     private static Angle angle = new Angle(0);
 
     private static int playerX = 25;
@@ -26,8 +32,12 @@ public class Main extends JFrame {
     }
 
     public void paint(Graphics g) {
-        System.out.println("Draw map");
         drawWorldMap(g, map);
+
+        g.clearRect(750, 0, 250, 300);
+        g.drawString("Rotate angle: " + rotateAngle, 750, 100);
+        g.drawString("View angle: " + viewAngle, 750, 150);
+        g.drawString("Cone of view radius: " + coneRadius, 750, 200);
     }
 
     public static void main(String[] args) {
@@ -44,22 +54,22 @@ public class Main extends JFrame {
                 int keyCode = e.getKeyCode();
 
                 if (keyCode == KeyEvent.VK_UP) {
-                    coneRadius++;
+                    coneRadius += CONE_RADIUS_STEP;
                     updateMap(frame);
                 }
 
                 if (keyCode == KeyEvent.VK_DOWN) {
-                    coneRadius--;
+                    coneRadius -= CONE_RADIUS_STEP;
                     updateMap(frame);
                 }
 
                 if (keyCode == KeyEvent.VK_RIGHT) {
-                    angle = new Angle(angle.getAngle() - ROTATE_ANGLE);
+                    angle = new Angle(angle.getAngle() - rotateAngle);
                     updateMap(frame);
                 }
 
                 if (keyCode == KeyEvent.VK_LEFT) {
-                    angle = new Angle(angle.getAngle() + ROTATE_ANGLE);
+                    angle = new Angle(angle.getAngle() + rotateAngle);
                     updateMap(frame);
                 }
 
@@ -80,6 +90,26 @@ public class Main extends JFrame {
 
                 if (keyCode == KeyEvent.VK_S) {
                     playerY++;
+                    updateMap(frame);
+                }
+
+                if (keyCode == KeyEvent.VK_E) {
+                    viewAngle += VIEW_ANGLE_STEP;
+                    updateMap(frame);
+                }
+
+                if (keyCode == KeyEvent.VK_Q) {
+                    viewAngle -= VIEW_ANGLE_STEP;
+                    updateMap(frame);
+                }
+
+                if (keyCode == KeyEvent.VK_R) {
+                    rotateAngle += ROTATE_ANGLE_STEP;
+                    updateMap(frame);
+                }
+
+                if (keyCode == KeyEvent.VK_F) {
+                    rotateAngle -= ROTATE_ANGLE_STEP;
                     updateMap(frame);
                 }
             }
@@ -137,10 +167,15 @@ public class Main extends JFrame {
 
     private static void updateMap(JFrame frame) {
         clearMap(frame);
-        Sector sector = new Sector(angle, VIEW_ANGLE);
+        Sector sector = new Sector(angle, viewAngle);
         ConeOfView coneOfView = new ConeOfView(coneRadius, sector);
         markConeOfView(map.getCell(playerX, playerY), coneOfView);
         markPlayer(playerX, playerY);
+        updateInfo(frame);
         frame.repaint();
+    }
+
+    private static void updateInfo(JFrame frame) {
+        frame.add(new JLabel(String.valueOf(coneRadius)));
     }
 }
