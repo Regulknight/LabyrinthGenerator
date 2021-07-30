@@ -1,6 +1,7 @@
 package com.lon.game.logic.cell;
 
 import com.badlogic.gdx.math.Vector2;
+import com.lon.game.LGenGame;
 import com.lon.game.logic.WorldMap;
 
 import java.awt.*;
@@ -51,7 +52,7 @@ public class Cell {
     }
 
     public Vector2 getPosition() {
-        return new Vector2(x + 15, y + 15);
+        return new Vector2(x + LGenGame.cellSize/2.f, y + LGenGame.cellSize/2.f);
     }
 
     //TODO rework with directions

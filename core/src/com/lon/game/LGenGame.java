@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 public class LGenGame extends ApplicationAdapter {
-	int cellSize = 30;
+	public static int cellSize = 40;
 	SpriteBatch batch;
 	Texture floor;
 	Texture light;
@@ -25,14 +25,17 @@ public class LGenGame extends ApplicationAdapter {
 	Texture wall;
 	WorldMap map;
 	OrthographicCamera camera;
-	Vector2 playerPosition = new Vector2(210, 210);
+	Vector2 playerPosition = new Vector2(6, 6);
 	Angle playerDirection = new Angle(0);
+
+	double viewAngle = Math.PI/2;
+	double coneRadius = 250;
 
 	Map<String, Texture> textureMap;
 
 	@Override
 	public void create () {
-		map = new WorldMap(30, 30, cellSize);
+		map = new WorldMap(40, 40, cellSize);
 
 		batch = new SpriteBatch();
 		floor = new Texture("floor.png");
@@ -46,8 +49,8 @@ public class LGenGame extends ApplicationAdapter {
 		textureMap.put("light", light);
 		textureMap.put("wall", wall);
 
-		camera = new OrthographicCamera(1000, 1000);
-		camera.translate(playerPosition);
+		camera = new OrthographicCamera(1024, 768);
+		camera.translate((new Vector2(playerPosition)).scl(cellSize));
 	}
 
 	@Override
@@ -62,32 +65,44 @@ public class LGenGame extends ApplicationAdapter {
 
 		Vector2 playerPositionChange = new Vector2(0 , 0);
 
-		if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+		if(Gdx.input.isKeyJustPressed(Input.Keys.A)) {
 			playerDirection = playerDirection.addAngle(new Angle(Math.PI / 2));
 		}
-
-		if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+		if(Gdx.input.isKeyJustPressed(Input.Keys.D)) {
 			playerDirection = playerDirection.addAngle(new Angle(-Math.PI / 2));
 		}
-		if(Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-			playerPositionChange.x -= 30;
+		if(Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+			playerPositionChange.x -= 1;
 			playerPositionChange.rotateAroundDeg(new Vector2(0, 0), playerDirection.getAngleDeg());
+		}
+		if(Gdx.input.isKeyJustPressed(Input.Keys.W)) {
+			playerPositionChange.x += 1;
+			playerPositionChange.rotateAroundDeg(new Vector2(0, 0), playerDirection.getAngleDeg());
+		}
+		if(Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+			viewAngle += Math.PI/16;
+		}
+		if(Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
+			viewAngle -= Math.PI/16;
 		}
 		if(Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-			playerPositionChange.x += 30;
-			playerPositionChange.rotateAroundDeg(new Vector2(0, 0), playerDirection.getAngleDeg());
+			coneRadius += 15;
 		}
+		if(Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+			coneRadius -= 15;
+		}
+
 		if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-			System.out.println(playerPosition.x);
-			System.out.println(playerPosition.y);
-			System.out.println(playerDirection.getAngle());
+			System.out.println("x: " + playerPosition.x);
+			System.out.println("y: " + playerPosition.y);
+			System.out.println("ang: " + playerDirection.getAngle());
 		}
-		
-		camera.translate(playerPositionChange);
 
 		playerPosition.add(playerPositionChange);
+		camera.translate(playerPositionChange.scl(cellSize));
 
-		renderPlayerVision(new ConeOfView(250, new Sector(playerDirection, Math.PI/2)));
+
+		renderPlayerVision(new ConeOfView(coneRadius, new Sector(playerDirection, viewAngle)));
 		renderPlayer();
 
 		batch.end();
@@ -96,23 +111,27 @@ public class LGenGame extends ApplicationAdapter {
 	private void renderMap() {
 		for (List<Cell> row: map.getMap()) {
 			for (Cell cell : row) {
-				batch.draw(textureMap.get(cell.getTextureKey()), cell.getX(), cell.getY(), cellSize, cellSize);
+				drawCell(cell);
 			}
 		}
 	}
 
 	private void renderPlayer() {
-		batch.draw(player, playerPosition.x, playerPosition.y, 15, 15, 30, 30, 1, 1, playerDirection.getAngleDeg(), 1, 1, 50, 50, false, false);
+		batch.draw(player, playerPosition.x * cellSize, playerPosition.y * cellSize, cellSize/2.f, cellSize/2.f, cellSize, cellSize, 1, 1, playerDirection.getAngleDeg(), 1, 1, 50, 50, false, false);
 	}
 
 	private void renderPlayerVision(ConeOfView coneOfView) {
 		for (List<Cell> row: map.getMap()) {
 			for (Cell cell: row) {
-				if (coneOfView.isPointContainInCone(new Vector2(playerPosition.x + 15, playerPosition.y + 15), cell.getPosition())) {
+				if (coneOfView.isPointContainInCone(new Vector2(playerPosition.x * cellSize + cellSize/2.f, playerPosition.y * cellSize + cellSize/2.f), cell.getPosition())) {
 					batch.draw(light, cell.getX(), cell.getY(), cellSize, cellSize);
 				}
 			}
 		}
+	}
+
+	private void drawCell(Cell cell) {
+		batch.draw(textureMap.get(cell.getTextureKey()), cell.getX(), cell.getY(), cellSize, cellSize);
 	}
 	
 	@Override
