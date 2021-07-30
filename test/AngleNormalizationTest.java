@@ -1,3 +1,5 @@
+import com.lon.game.logic.Angle;
+import com.lon.game.logic.Directions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

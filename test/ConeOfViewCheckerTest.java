@@ -1,4 +1,7 @@
 
+import com.lon.game.logic.ConeOfView;
+import com.lon.game.logic.Directions;
+import com.lon.game.logic.Sector;
 import org.junit.jupiter.api.Test;
 
 import java.awt.geom.Point2D;
@@ -6,7 +9,7 @@ import java.awt.geom.Point2D;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ConeOfViewCheckerTest {
-    private static final Point2D center = new Point2D.Double(25, 25);
+    private static final Vector2 center = new Vector2(25, 25);
     private static final double rightAngle = Math.PI / 2;
 
     @Test
@@ -18,7 +21,7 @@ public class ConeOfViewCheckerTest {
             for (int j = 0; j < 50; j++) {
                 boolean result = (24 <= i && i <= 26 && j == 24) || (i == 25 && j == 25);
 
-                assertEquals(result, upCone.isPointContainInCone(center, new Point2D.Double(i, j)), i + " " + j);
+                assertEquals(result, upCone.isPointContainInCone(center, new Vector2(i, j)), i + " " + j);
             }
         }
     }
@@ -32,7 +35,7 @@ public class ConeOfViewCheckerTest {
             for (int j = 0; j < 50; j++) {
                 boolean result = (24 <= j && j <= 26 && i == 26) || (i == 25 && j == 25);
 
-                assertEquals(result, rightCone.isPointContainInCone(center, new Point2D.Double(i, j)), i + " " + j);
+                assertEquals(result, rightCone.isPointContainInCone(center, new Vector2(i, j)), i + " " + j);
             }
         }
     }
@@ -46,7 +49,7 @@ public class ConeOfViewCheckerTest {
             for (int j = 0; j < 50; j++) {
                 boolean result = (24 <= i && i <= 26 && j == 26) || (i == 25 && j == 25);
 
-                assertEquals(result, downCone.isPointContainInCone(center, new Point2D.Double(i, j)), i + " " + j);
+                assertEquals(result, downCone.isPointContainInCone(center, new Vector2(i, j)), i + " " + j);
             }
         }
     }
@@ -60,7 +63,7 @@ public class ConeOfViewCheckerTest {
             for (int j = 0; j < 50; j++) {
                 boolean result = (24 <= j && j <= 26 && i == 24) || (i == 25 && j == 25);
 
-                assertEquals(result, leftCone.isPointContainInCone(center, new Point2D.Double(i, j)), i + " " + j);
+                assertEquals(result, leftCone.isPointContainInCone(center, new Vector2(i, j)), i + " " + j);
             }
         }
     }
