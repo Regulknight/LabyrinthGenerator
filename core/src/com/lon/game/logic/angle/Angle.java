@@ -1,4 +1,4 @@
-package com.lon.game.logic;
+package com.lon.game.logic.angle;
 
 public class Angle {
     private final double radians;
@@ -23,7 +23,7 @@ public class Angle {
         return result;
     }
 
-    public double getAngle() {
+    public double getRadians() {
         return this.radians;
     }
 
@@ -32,14 +32,14 @@ public class Angle {
     }
 
     public Angle addAngle(Angle angle) {
-        return new Angle (angle.getAngle() + this.radians);
+        return new Angle (angle.getRadians() + this.radians);
     }
 
     public int compare(Angle angle) {
-        if (Math.sqrt(Math.abs(this.radians * this.radians - angle.getAngle() * angle.getAngle())) < 0.001) {
+        if (Math.sqrt(Math.abs(this.radians * this.radians - angle.getRadians() * angle.getRadians())) < 0.001) {
             return 0;
         }
-        return Double.compare(this.radians, angle.getAngle());
+        return Double.compare(this.radians, angle.getRadians());
     }
 
 }

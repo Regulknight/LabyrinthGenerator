@@ -1,4 +1,4 @@
-package com.lon.game.logic;
+package com.lon.game.logic.angle;
 
 import java.util.ArrayList;
 import java.util.List;

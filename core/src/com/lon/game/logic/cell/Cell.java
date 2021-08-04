@@ -2,11 +2,12 @@ package com.lon.game.logic.cell;
 
 import com.badlogic.gdx.math.Vector2;
 import com.lon.game.LGenGame;
+import com.lon.game.logic.HasTexture;
 import com.lon.game.logic.WorldMap;
 
 import java.awt.*;
 
-public class Cell {
+public class Cell implements HasTexture {
     private int x;
     private int y;
     private CellType type;

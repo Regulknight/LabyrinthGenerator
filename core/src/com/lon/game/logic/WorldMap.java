@@ -1,5 +1,8 @@
 package com.lon.game.logic;
 
+import com.badlogic.gdx.math.Vector2;
+import com.lon.game.logic.area.Area;
+import com.lon.game.logic.area.ConeOfView;
 import com.lon.game.logic.cell.Cell;
 import com.lon.game.logic.cell.EmptyCell;
 
@@ -35,24 +38,18 @@ public class WorldMap {
         return map;
     }
 
-    public boolean isWallCell(int x, int y) {
-        if ((x < 0 && x >= width) || (y < 0 && y >= height)) {
-            return false;
-        }
+    public List<Cell> getCellsFromArea(Vector2 areaAttachPoint, Area area) {
+        List<Cell> result = new LinkedList<>();
 
-        return getCell(x, y).isSolid();
-    }
-
-    public boolean isFreeArea(int aX, int aY, int bX, int bY) {
-        for (int i = aX; i < bX; i++) {
-            for (int j = aY; j < bY; j++) {
-                if (getCell(i, j).isSolid()) {
-                    return false;
-                }
+        //TODO Make cell check smarter
+        for (List<Cell> row: map) {
+            for (Cell cell: row) {
+                if (area.isContainPoint(areaAttachPoint, cell.getPosition()))
+                    result.add(cell);
             }
         }
 
-        return true;
+        return result;
     }
 
     public Cell getCell(int x, int y) {
