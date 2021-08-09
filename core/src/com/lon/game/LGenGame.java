@@ -34,10 +34,10 @@ public class LGenGame extends ApplicationAdapter {
 
 	@Override
 	public void create () {
-		map = new WorldMap(40, 40, cellSize);
+		map = new WorldMap(35, 25, cellSize);
 
 
-		generator = new LabyrinthGenerator(map, map.getCell(0, 0), map.getCell(39, 39));
+		generator = new LabyrinthGenerator(map, map.getCell(0, 0), map.getCell(34, 24));
 
 		batch = new SpriteBatch();
 		textureMap = TextureMap.getInstance();
