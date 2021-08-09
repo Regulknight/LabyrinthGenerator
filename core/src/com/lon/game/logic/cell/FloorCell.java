@@ -1,13 +1,13 @@
 package com.lon.game.logic.cell;
 
-public class WallCell implements CellType{
+public class FloorCell implements CellType{
     @Override
     public boolean isSolid() {
-        return true;
+        return false;
     }
 
     @Override
     public String getTextureKey() {
-        return "wall";
+        return "floor";
     }
 }

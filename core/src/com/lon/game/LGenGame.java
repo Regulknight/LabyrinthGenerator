@@ -12,6 +12,7 @@ import com.lon.game.logic.angle.Angle;
 import com.lon.game.logic.area.ConeOfView;
 import com.lon.game.logic.area.Sector;
 import com.lon.game.logic.cell.Cell;
+import com.lon.game.logic.generator.LabyrinthGenerator;
 
 import java.util.List;
 
@@ -29,14 +30,19 @@ public class LGenGame extends ApplicationAdapter {
 
 	TextureMap textureMap;
 
+	LabyrinthGenerator generator;
+
 	@Override
 	public void create () {
 		map = new WorldMap(40, 40, cellSize);
 
+
+		generator = new LabyrinthGenerator(map, map.getCell(0, 0), map.getCell(39, 39));
+
 		batch = new SpriteBatch();
 		textureMap = TextureMap.getInstance();
 
-		camera = new OrthographicCamera(1024, 768);
+		camera = new OrthographicCamera(1920, 1080);
 		camera.translate((new Vector2(playerPosition)).scl(cellSize));
 	}
 
@@ -86,16 +92,13 @@ public class LGenGame extends ApplicationAdapter {
 			rotateAngle -= Math.PI/32;
 		}
 
-		if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-			System.out.println("x: " + playerPosition.x);
-			System.out.println("y: " + playerPosition.y);
-			System.out.println("ang: " + playerDirection.getRadians());
-			System.out.println("view angle: " + viewAngle);
-			System.out.println("cone radius: " + coneRadius);
+		if(Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+			generator.generate();
+			renderMap();
 		}
 
 		playerPosition.add(playerPositionChange);
-		camera.translate(playerPositionChange.scl(cellSize));
+		camera.translate(new Vector2(playerPositionChange.scl(cellSize)));
 
 
 		renderPlayerVision(new ConeOfView(coneRadius, new Sector(playerDirection, viewAngle)));
@@ -113,19 +116,21 @@ public class LGenGame extends ApplicationAdapter {
 	}
 
 	private void renderPlayer() {
-		batch.draw(textureMap.get("player"), playerPosition.x * cellSize, playerPosition.y * cellSize, cellSize/2.f, cellSize/2.f, cellSize, cellSize, 1, 1, playerDirection.getAngleDeg(), 1, 1, 50, 50, false, false);
+		batch.draw(textureMap.get("player"), playerPosition.x * cellSize + 10, playerPosition.y * cellSize + 10, 20/2.f, 20/2.f, 20, 20, 1, 1, playerDirection.getAngleDeg(), 1, 1, 50, 50, false, false);
 	}
 
 	private void renderPlayerVision(ConeOfView coneOfView) {
 		List<Cell> cellsInConeOfView = map.getCellsFromArea(new Vector2(playerPosition.x * cellSize + cellSize/2.f, playerPosition.y * cellSize + cellSize/2.f), coneOfView);
 
 		for (Cell cell: cellsInConeOfView) {
-			batch.draw(textureMap.get("light"), cell.getX(), cell.getY(), cellSize, cellSize);
+			Vector2 cellPosition = new Vector2(cell.getGridPosition()).scl(cellSize);
+			batch.draw(textureMap.get("light"), cellPosition.x, cellPosition.y, cellSize, cellSize);
 		}
 	}
 
 	private void drawCell(Cell cell) {
-		batch.draw(textureMap.get(cell.getTextureKey()), cell.getX(), cell.getY(), cellSize, cellSize);
+		Vector2 cellPosition = new Vector2(cell.getGridPosition()).scl(cellSize);
+		batch.draw(textureMap.get(cell.getTextureKey()), cellPosition.x, cellPosition.y, cellSize, cellSize);
 	}
 	
 	@Override

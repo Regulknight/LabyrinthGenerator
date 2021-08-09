@@ -8,14 +8,11 @@ import com.lon.game.logic.WorldMap;
 import java.awt.*;
 
 public class Cell implements HasTexture {
-    private int x;
-    private int y;
+    private Vector2 gridPosition;
     private CellType type;
-    private final String textureKey = "floor";
 
-    public Cell(int x, int y, CellType type) {
-        this.x = x;
-        this.y = y;
+    public Cell(Vector2 gridPosition, CellType type) {
+        this.gridPosition = gridPosition;
         this.type = type;
     }
 
@@ -32,44 +29,40 @@ public class Cell implements HasTexture {
     }
 
 
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
+    public Vector2 getGridPosition() {
+        return this.gridPosition;
     }
 
     public String getTextureKey() {
-        return textureKey;
+        return type.getTextureKey();
     }
 
-    public Vector2 getPosition() {
-        return new Vector2(x + LGenGame.cellSize/2.f, y + LGenGame.cellSize/2.f);
+    public Vector2 getPixelPosition() {
+        return new Vector2((this.gridPosition.x + 1/2.f) * LGenGame.cellSize, (this.gridPosition.y + 1/2.f) * LGenGame.cellSize);
     }
 
-    //TODO rework with directions
-    public boolean canGrowUp(WorldMap map) {
-        return map.isFreeArea(x - 1, y + 1, x + 1, y + 2);
+    public int getX() {
+        return Math.round(this.gridPosition.x);
     }
 
-    public boolean canGrowDown(WorldMap map) {
-        return map.isFreeArea(x - 1, y - 2, x + 1, y - 1);
+    public int getY() {
+        return Math.round(this.gridPosition.y);
     }
 
-    public boolean canGrowLeft(WorldMap map) {
-        return map.isFreeArea(x - 2, y - 1, x - 1, y + 1);
-    }
-
-    public boolean canGrowRight(WorldMap map) {
-        return map.isFreeArea(x + 1, y - 1, x + 2, y + 1);
-    }
+//    //TODO rework with directions
+//    public boolean canGrowUp(WorldMap map) {
+//        return map.isFreeArea(x - 1, y + 1, x + 1, y + 2);
+//    }
+//
+//    public boolean canGrowDown(WorldMap map) {
+//        return map.isFreeArea(x - 1, y - 2, x + 1, y - 1);
+//    }
+//
+//    public boolean canGrowLeft(WorldMap map) {
+//        return map.isFreeArea(x - 2, y - 1, x - 1, y + 1);
+//    }
+//
+//    public boolean canGrowRight(WorldMap map) {
+//        return map.isFreeArea(x + 1, y - 1, x + 2, y + 1);
+//    }
 }
