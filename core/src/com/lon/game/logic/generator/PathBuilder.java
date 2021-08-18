@@ -1,30 +1,35 @@
 package com.lon.game.logic.generator;
 
 import com.badlogic.gdx.math.Vector2;
+import com.lon.game.LGenGame;
 import com.lon.game.logic.WorldMap;
 import com.lon.game.logic.angle.Angle;
 import com.lon.game.logic.angle.Directions;
 import com.lon.game.logic.area.ConeOfView;
 import com.lon.game.logic.area.Sector;
 import com.lon.game.logic.cell.Cell;
-import com.lon.game.logic.cell.FloorCell;
 
 import java.util.*;
 import java.util.function.Predicate;
 
 public class PathBuilder {
     private final double angleOfView = Math.PI/2.0;
-    private final double coneRadius = 100;
+    private final double coneRadius = LGenGame.cellSize * 2.5;
 
     private final Map<Angle, ConeOfView> directionConesOfView = new HashMap<>();
+    private final WorldMap map;
 
-    public PathBuilder() {
+    public PathBuilder(WorldMap map) {
+        this.map = map;
+
         for (Angle baseAngle: Directions.directionList()) {
             directionConesOfView.put(baseAngle, new ConeOfView(coneRadius, new Sector(baseAngle, angleOfView)));
         }
     }
 
-    public PathBranch buildBranch(PathBranch branch, WorldMap map) throws PathBuildException {
+    public List<Cell> getCellsForGrowing(PathTree branch) throws PathBuildException {
+        List<Cell> result = new LinkedList<>();
+
         Cell tail = branch.getTail();
 
         List<Angle> ableDirections = getAbleDirections(tail, map);
@@ -40,11 +45,9 @@ public class PathBuilder {
         int x = Math.round(vec.x);
         int y = Math.round(vec.y);
 
-        Cell newCell = new Cell(new Vector2(x, y), new FloorCell());
-        branch.appendCell(newCell);
-        map.setCell(newCell, x, y);
+        result.add(map.getCell(x, y));
 
-        return branch;
+        return result;
     }
 
     private List<Angle> getAbleDirections(Cell cell, WorldMap map) {
@@ -65,7 +68,7 @@ public class PathBuilder {
         return result;
     }
 
-    public boolean isAbleToBuild(Cell cell, WorldMap map) {
+    public boolean isAbleToBuild(Cell cell) {
         return !getAbleDirections(cell, map).isEmpty();
     }
 

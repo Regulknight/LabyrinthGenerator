@@ -1,44 +1,145 @@
 package com.lon.game.logic.generator;
 
-import com.badlogic.gdx.math.Vector2;
-import com.lon.game.logic.WorldMap;
 import com.lon.game.logic.cell.Cell;
 import com.lon.game.logic.cell.FloorCell;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PathTree {
-    private final List<PathBranch> branches = new LinkedList<>();
-    private final List<PathBranch> activeBranches = new LinkedList<>();
-    private final WorldMap map;
+    private int pathLength;
 
-    public PathTree(Cell root, WorldMap map) {
-        this.map = map;
-        PathBranch initBranch = new PathBranch(root);
-        this.activeBranches.add(initBranch);
+    private final List<Cell> cellList = new LinkedList<>();
+    private volatile List<PathTree> activeChildList = new LinkedList<>();
+
+    private volatile List<PathTree> closedChildList = new LinkedList<>();
+
+    private PathBuilder builder;
+
+    public PathTree(Cell root, PathBuilder builder, int rootPosition) {
+        this.pathLength = rootPosition;
+        this.cellList.add(root);
+        this.builder = builder;
+    }
+    public Cell getRoot() {
+        return this.cellList.get(0);
     }
 
-    public boolean itHasActiveBranches() {
-        return !activeBranches.isEmpty();
+    public Cell getTail() {
+        return this.cellList.get(cellList.size() - 1);
     }
 
-    public void createBranch(Vector2 rootPosition) {
-        Cell root = new Cell(rootPosition, new FloorCell());
-        map.setCell(root, root.getX(), root.getY());
-        activeBranches.add(new PathBranch(root));
+    public List<Cell> getCellList() {
+        return cellList;
     }
 
-    public void closeBranch(PathBranch branch) {
-        activeBranches.remove(branch);
-        branches.add(branch);
+    public boolean grow() {
+        return growCurrentTree() || growNewChildren() | growActiveChildren();
     }
 
-    public List<PathBranch> getBranches() {
-        return branches;
+    private boolean growActiveChildren() {
+        boolean result = false;
+
+        for (PathTree child: activeChildList) {
+            boolean growStatus = child.grow();
+            if (!growStatus) {
+                closedChildList.add(child);
+            }
+            result = result || growStatus;
+        }
+
+        activeChildList.removeAll(closedChildList);
+
+        return result;
     }
 
-    public List<PathBranch> getActiveBranches() {
-        return activeBranches;
+    private boolean growCurrentTree() {
+        boolean result = false;
+        if (builder.isAbleToBuild(getTail())) {
+            List<Cell> cellsForGrowing = new LinkedList<>();
+
+            try {
+                cellsForGrowing = builder.getCellsForGrowing(this);
+            } catch (PathBuildException e) {
+                e.printStackTrace();
+            }
+
+            for (Cell cell: cellsForGrowing) {
+                cell.setType(new FloorCell());
+                cellList.add(cell);
+                result = true;
+            }
+        }
+
+        return result;
     }
+
+    private boolean growNewChildren() {
+        List<Cell> cellList = getCellForBranching();
+
+        if (!cellList.isEmpty()) {
+            Collections.shuffle(cellList);
+
+            Cell root = cellList.get(0);
+
+            if (root == null) return false;
+
+            activeChildList.add(new PathTree(root, builder, pathLength + this.cellList.indexOf(root)));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private List<Cell> getCellForBranching() {
+        List<Cell> result = new LinkedList<>();
+
+        for (Cell cell : this.cellList) {
+            if (builder.isAbleToBuild(cell)) {
+                result.add(cell);
+            }
+        }
+
+        for (PathTree activeChild: activeChildList) {
+            result.addAll(activeChild.getCellForBranching());
+        }
+
+        for (PathTree closedChild: closedChildList) {
+            result.addAll(closedChild.getCellForBranching());
+        }
+
+        return result;
+    }
+
+    public int getSize() {
+        int result = 0;
+
+        for (PathTree tree: activeChildList) {
+            result += tree.getSize();
+        }
+
+        return cellList.size() + result;
+    }
+
+    public int getPathLength() {
+        return this.pathLength;
+    }
+
+    public List<Cell> getTails() {
+        List<Cell> tails = new LinkedList<>();
+
+        tails.add(getTail());
+
+        for (PathTree pathTree: activeChildList) {
+            tails.addAll(pathTree.getTails());
+        }
+
+        for (PathTree pathTree: closedChildList) {
+            tails.addAll(pathTree.getTails());
+        }
+
+        return tails;
+    }
+
 }
