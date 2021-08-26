@@ -3,9 +3,14 @@ package com.lon.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.lon.game.logic.TextureMap;
@@ -15,22 +20,30 @@ import com.lon.game.logic.area.ConeOfView;
 import com.lon.game.logic.area.Sector;
 import com.lon.game.logic.cell.Cell;
 import com.lon.game.logic.generator.LabyrinthGenerator;
+import com.lon.game.logic.utils.BodyBuilder;
 
 import java.util.List;
 
 public class LGenGame extends ApplicationAdapter {
-	public static int cellSize = 20;
+	public static int cellSize = 40;
+	private static final int halfCellSize = cellSize/2;
+
+	private final int gridWidth = 20;
+	private final int gridHeight = 20;
+
 	SpriteBatch batch;
 	WorldMap map;
 	World world;
 	OrthographicCamera camera;
-	Vector2 playerPosition = new Vector2(6, 6);
+	Vector2 playerPosition = new Vector2(0.5f, 0.5f);
 	Angle playerDirection = new Angle(0);
+	Box2DDebugRenderer b2dr;
 
 	double rotateAngle = 2 * Math.PI;
 	double viewAngle = Math.PI/2;
 	double coneRadius = 250;
-	private int playerSize = 10;
+	private final int playerSize = 10;
+	Body player;
 
 	TextureMap textureMap;
 
@@ -38,38 +51,57 @@ public class LGenGame extends ApplicationAdapter {
 
 	@Override
 	public void create () {
-		map = new WorldMap(60, 60, cellSize);
-
 		world = new World(new Vector2(0,0), false);
 
-		generator = new LabyrinthGenerator(map, map.getCell(30, 30), map.getCell(34, 24));
+		map = new WorldMap(gridWidth, gridHeight, cellSize, world);
+
+		BodyBuilder.createBox(world, -halfCellSize - 5, -halfCellSize + gridHeight/2 * cellSize, 10, gridHeight * cellSize + halfCellSize, true, true);
+		BodyBuilder.createBox(world, gridWidth/2 * cellSize - halfCellSize, -halfCellSize - 5, gridWidth * cellSize, 10, true, true);
+		BodyBuilder.createBox(world, gridWidth * cellSize - halfCellSize + 5, -halfCellSize + gridHeight/2 * cellSize, 10, gridHeight * cellSize + halfCellSize, true, true);
+		BodyBuilder.createBox(world, gridWidth/2 * cellSize - halfCellSize, gridHeight * cellSize - halfCellSize + 5, gridWidth * cellSize, 10, true, true);
+
+		generator = new LabyrinthGenerator(map, map.getCell(0, 0), map.getCell(9, 9), world);
+
+		player = BodyBuilder.createBox(world, 15, 15, playerSize, playerSize, false, false);
+		player.setActive(true);
+		player.setAwake(true);
+		player.setLinearDamping(20f);
+		player.setAngularDamping(10f);
+
 
 		batch = new SpriteBatch();
 		textureMap = TextureMap.getInstance();
 
+		b2dr = new Box2DDebugRenderer();
+
 		camera = new OrthographicCamera(1920, 1080);
 		camera.translate((new Vector2(playerPosition)).scl(cellSize).add((float) (playerSize/2.f), playerSize/2.f));
-
-		Thread t = new Thread(generator);
-		t.start();
 	}
 
 	@Override
 	public void render () {
+		world.step(60, 1, 1);
+
+		Gdx.gl20.glClearColor(.25f, .25f, .25f, 1f);
+		Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
 		ScreenUtils.clear(0, 0, 0, 1);
 		batch.setProjectionMatrix(camera.combined);
+
 
 		batch.begin();
 		camera.update();
 
+		generator.step();
 		Vector2 playerPositionChange = processUserInput();
 
 		playerPosition.add(playerPositionChange);
-		camera.translate(new Vector2(playerPositionChange.scl(cellSize)));
+		camera.position.set(player.getPosition().x, player.getPosition().y, 0);
 
 		renderMap();
-		renderPlayerVision(new ConeOfView(coneRadius, new Sector(playerDirection, viewAngle)));
+		renderPlayerVision(new ConeOfView(coneRadius, new Sector(new Angle(player.getAngle()), viewAngle)));
 		renderPlayer();
+		b2dr.render(world, camera.combined.cpy());
 		//renderTails();
 
 		batch.end();
@@ -84,11 +116,13 @@ public class LGenGame extends ApplicationAdapter {
 	}
 
 	private void renderPlayer() {
-		batch.draw(textureMap.get("player"), playerPosition.x * cellSize, playerPosition.y * cellSize, playerSize/2.f, playerSize/2.f, playerSize, playerSize, 1, 1, playerDirection.getAngleDeg(), 1, 1, 50, 50, false, false);
+		batch.draw(textureMap.get("player"), player.getPosition().x - playerSize/2, player.getPosition().y - playerSize/2, playerSize/2, playerSize/2, playerSize, playerSize, 1, 1, (new Angle(player.getAngle())).getAngleDeg(), 1, 1, 50, 50, false, false);
 	}
 
 	private void renderPlayerVision(ConeOfView coneOfView) {
-		List<Cell> cellsInConeOfView = map.getCellsFromArea(new Vector2(playerPosition.x * cellSize + playerSize/2.f, playerPosition.y * cellSize + playerSize/2.f), coneOfView);
+		playerPosition = player.getPosition();
+
+		List<Cell> cellsInConeOfView = map.getCellsFromArea(new Vector2(playerPosition.x + playerSize/2.f, playerPosition.y + playerSize/2.f), coneOfView);
 
 		for (Cell cell: cellsInConeOfView) {
 			Vector2 cellPosition = new Vector2(cell.getGridPosition()).scl(cellSize);
@@ -111,6 +145,7 @@ public class LGenGame extends ApplicationAdapter {
 	@Override
 	public void dispose () {
 		batch.dispose();
+		b2dr.dispose();
 		textureMap.dispose();
 	}
 
@@ -121,22 +156,21 @@ public class LGenGame extends ApplicationAdapter {
 
 		if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
 			playerDirection = new Angle(Gdx.input.getX() - camera.viewportWidth/2.f, - Gdx.input.getY() + camera.viewportHeight/2.f);
-			playerPositionChange.x += 5 * delta;
-			playerPositionChange.rotateAroundDeg(new Vector2(0, 0), playerDirection.getAngleDeg());
+			player.getTransform().setRotation((float) playerDirection.getRadians());
+
+			player.setLinearVelocity((new Vector2(5 * delta, 0)).rotateAroundDeg(new Vector2(0, 0), player.getAngle()));
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.A)) {
-			playerDirection = playerDirection.addAngle(new Angle(rotateAngle * delta));
+			player.setAngularVelocity((float) (50 *  delta));
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.D)) {
-			playerDirection = playerDirection.addAngle(new Angle(-rotateAngle *  delta));
+			player.setAngularVelocity((float) (-50 *  delta));
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.S)) {
-			playerPositionChange.x -= 5 * delta;
-			playerPositionChange.rotateAroundDeg(new Vector2(0, 0), playerDirection.getAngleDeg());
+			player.setLinearVelocity((new Vector2(-2000 * delta, 0)).rotateAroundRad(new Vector2(0, 0), player.getAngle()));
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.W)) {
-			playerPositionChange.x += 5 * delta;
-			playerPositionChange.rotateAroundDeg(new Vector2(0, 0), playerDirection.getAngleDeg());
+			player.setLinearVelocity((new Vector2(2000 * delta, 0)).rotateAroundRad(new Vector2(0, 0), player.getAngle()));
 		}
 		if(Gdx.input.isKeyJustPressed(Input.Keys.E)) {
 			viewAngle += Math.PI/16;
@@ -144,11 +178,11 @@ public class LGenGame extends ApplicationAdapter {
 		if(Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
 			viewAngle -= Math.PI/16;
 		}
-		if(Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-			coneRadius += 15;
+		if(Gdx.input.isKeyPressed(Input.Keys.UP)) {
+			camera.zoom += 0.1;
 		}
-		if(Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-			coneRadius -= 15;
+		if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+			camera.zoom -= 0.1;
 		}
 		if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
 			rotateAngle += Math.PI/32;
@@ -157,7 +191,7 @@ public class LGenGame extends ApplicationAdapter {
 			rotateAngle -= Math.PI/32;
 		}
 
-		if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+		if(Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
 
 		}
 

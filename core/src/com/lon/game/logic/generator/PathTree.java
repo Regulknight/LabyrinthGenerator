@@ -1,5 +1,6 @@
 package com.lon.game.logic.generator;
 
+import com.badlogic.gdx.physics.box2d.World;
 import com.lon.game.logic.cell.Cell;
 import com.lon.game.logic.cell.FloorCell;
 
@@ -8,6 +9,7 @@ import java.util.stream.Collectors;
 
 public class PathTree {
     private int pathLength;
+    private final World world;
 
     private final List<Cell> cellList = new LinkedList<>();
     private volatile List<PathTree> activeChildList = new LinkedList<>();
@@ -16,10 +18,11 @@ public class PathTree {
 
     private PathBuilder builder;
 
-    public PathTree(Cell root, PathBuilder builder, int rootPosition) {
+    public PathTree(Cell root, PathBuilder builder, int rootPosition, World world) {
         this.pathLength = rootPosition;
         this.cellList.add(root);
         this.builder = builder;
+        this.world = world;
     }
     public Cell getRoot() {
         return this.cellList.get(0);
@@ -34,7 +37,7 @@ public class PathTree {
     }
 
     public boolean grow() {
-        return growCurrentTree() || growNewChildren() | growActiveChildren();
+        return growCurrentTree() || growActiveChildren() || growNewChildren();
     }
 
     private boolean growActiveChildren() {
@@ -66,6 +69,7 @@ public class PathTree {
 
             for (Cell cell: cellsForGrowing) {
                 cell.setType(new FloorCell());
+                world.destroyBody(cell.getBody());
                 cellList.add(cell);
                 result = true;
             }
@@ -84,7 +88,7 @@ public class PathTree {
 
             if (root == null) return false;
 
-            activeChildList.add(new PathTree(root, builder, pathLength + this.cellList.indexOf(root)));
+            activeChildList.add(new PathTree(root, builder, pathLength + this.cellList.indexOf(root), world));
 
             return true;
         }

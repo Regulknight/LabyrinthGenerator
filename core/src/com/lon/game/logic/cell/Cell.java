@@ -1,6 +1,7 @@
 package com.lon.game.logic.cell;
 
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.lon.game.LGenGame;
 import com.lon.game.logic.HasTexture;
 import com.lon.game.logic.WorldMap;
@@ -10,10 +11,12 @@ import java.awt.*;
 public class Cell implements HasTexture {
     private Vector2 gridPosition;
     private CellType type;
+    private Body body;
 
-    public Cell(Vector2 gridPosition, CellType type) {
+    public Cell(Vector2 gridPosition, CellType type, Body body) {
         this.gridPosition = gridPosition;
         this.type = type;
+        this.body = body;
     }
 
     public CellType getType() {
@@ -49,7 +52,11 @@ public class Cell implements HasTexture {
         return Math.round(this.gridPosition.y);
     }
 
-//    //TODO rework with directions
+    public Body getBody() {
+        return body;
+    }
+
+    //    //TODO rework with directions
 //    public boolean canGrowUp(WorldMap map) {
 //        return map.isFreeArea(x - 1, y + 1, x + 1, y + 2);
 //    }

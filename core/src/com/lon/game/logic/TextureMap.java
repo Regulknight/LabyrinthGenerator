@@ -22,10 +22,10 @@ public class TextureMap extends HashMap<String, Texture> {
 
     //TODO add mappingLoading
     private void loadTexturesMapping() {
-        put("floor", new Texture("floor.png"));
+        put("floor", new Texture("wall.png"));
         put("light", new Texture("light.png"));
         put("player", new Texture("player.png"));
-        put("wall", new Texture("wall.png"));
+        put("wall", new Texture("floor.png"));
     }
 
     public void dispose() {

@@ -1,10 +1,14 @@
 package com.lon.game.logic;
 
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.World;
+
 import com.lon.game.logic.area.Area;
 import com.lon.game.logic.cell.Cell;
 import com.lon.game.logic.cell.FloorCell;
 import com.lon.game.logic.cell.WallCell;
+import com.lon.game.logic.utils.BodyBuilder;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -13,13 +17,16 @@ public class WorldMap {
     private final int width;
     private final int height;
     private final int cellSize;
+    private final World world;
 
     private final List<List<Cell>> map;
 
-    public WorldMap(int width, int height, int cellSize) {
+    public WorldMap(int width, int height, int cellSize, World world) {
         this.width = width;
         this.height = height;
         this.cellSize = cellSize;
+
+        this.world = world;
 
         this.map = createMap();
     }
@@ -30,7 +37,8 @@ public class WorldMap {
         for (int i = 0; i < height; i++) {
             List<Cell> row = new LinkedList<>();
             for (int j = 0; j < width; j++) {
-                row.add(new Cell(new Vector2(j, i), new WallCell()));
+                Body body = BodyBuilder.createBox(this.world, j*cellSize, i*cellSize, cellSize, cellSize, true, true);
+                row.add(new Cell(new Vector2(j, i), new WallCell(), body));
             }
             map.add(row);
         }
