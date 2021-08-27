@@ -2,7 +2,8 @@
 package com.lon.game.logic.utils;
 
 import com.badlogic.gdx.physics.box2d.*;
-import com.lon.game.LGenGame;
+
+import static com.lon.game.logic.utils.Constatns.CELL_SIZE;
 
 public class BodyBuilder {
 
@@ -15,13 +16,13 @@ public class BodyBuilder {
         else
             def.type = BodyDef.BodyType.DynamicBody;
 
-        def.position.set(x + LGenGame.cellSize/2, y + LGenGame.cellSize/2);
+        def.position.set(x + CELL_SIZE / 2.f, y + CELL_SIZE / 2.f);
         def.fixedRotation = fixedRotation;
         pBody = world.createBody(def);
         pBody.setUserData("wall");
 
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(width / 2, height / 2);
+        shape.setAsBox(width / 2.f, height / 2.f);
 
         FixtureDef fd = new FixtureDef();
         fd.shape = shape;
@@ -47,7 +48,7 @@ public class BodyBuilder {
         }
 
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(w / 2, h / 2);
+        shape.setAsBox(w / 2.f, h / 2.f);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;

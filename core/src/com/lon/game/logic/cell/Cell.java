@@ -8,10 +8,13 @@ import com.lon.game.logic.WorldMap;
 
 import java.awt.*;
 
+import static com.lon.game.logic.utils.Constatns.CELL_SIZE;
+
 public class Cell implements HasTexture {
     private Vector2 gridPosition;
     private CellType type;
     private Body body;
+    private int remoteness;
 
     public Cell(Vector2 gridPosition, CellType type, Body body) {
         this.gridPosition = gridPosition;
@@ -41,7 +44,7 @@ public class Cell implements HasTexture {
     }
 
     public Vector2 getPixelPosition() {
-        return new Vector2((this.gridPosition.x + 1/2.f) * LGenGame.cellSize, (this.gridPosition.y + 1/2.f) * LGenGame.cellSize);
+        return new Vector2((this.gridPosition.x + 1/2.f) * CELL_SIZE, (this.gridPosition.y + 1/2.f) * CELL_SIZE);
     }
 
     public int getX() {
@@ -54,6 +57,18 @@ public class Cell implements HasTexture {
 
     public Body getBody() {
         return body;
+    }
+
+    public void setBody(Body body) {
+        this.body = body;
+    }
+
+    public int getRemoteness() {
+        return remoteness;
+    }
+
+    public void setRemoteness(int remoteness) {
+        this.remoteness = remoteness;
     }
 
     //    //TODO rework with directions

@@ -70,6 +70,8 @@ public class PathTree {
             for (Cell cell: cellsForGrowing) {
                 cell.setType(new FloorCell());
                 world.destroyBody(cell.getBody());
+                cell.setBody(null);
+                cell.setRemoteness(pathLength + cellList.size());
                 cellList.add(cell);
                 result = true;
             }
@@ -144,6 +146,23 @@ public class PathTree {
         }
 
         return tails;
+    }
+
+    public Cell generateExit() {
+        List<Cell> candidates = new LinkedList<>();
+
+        candidates.add(getTail());
+
+        for (PathTree tree: closedChildList) {
+            candidates.add(tree.getTail());
+        }
+
+        return candidates.stream().max(new Comparator<Cell>() {
+            @Override
+            public int compare(Cell o1, Cell o2) {
+                return Integer.compare(o1.getRemoteness(), o2.getRemoteness());
+            }
+        }).get();
     }
 
 }

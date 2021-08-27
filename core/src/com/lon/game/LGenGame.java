@@ -5,37 +5,39 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.lon.game.logic.Level;
 import com.lon.game.logic.TextureMap;
 import com.lon.game.logic.WorldMap;
 import com.lon.game.logic.angle.Angle;
 import com.lon.game.logic.area.ConeOfView;
-import com.lon.game.logic.area.Sector;
 import com.lon.game.logic.cell.Cell;
 import com.lon.game.logic.generator.LabyrinthGenerator;
 import com.lon.game.logic.utils.BodyBuilder;
 
 import java.util.List;
 
+import static com.lon.game.logic.utils.Constatns.CELL_SIZE;
+
 public class LGenGame extends ApplicationAdapter {
 	public static int cellSize = 40;
 	private static final int halfCellSize = cellSize/2;
 
-	private final int gridWidth = 20;
-	private final int gridHeight = 20;
+	private final int gridWidth = 8;
+	private final int gridHeight = 8;
+
+	private int score = 0;
 
 	SpriteBatch batch;
 	WorldMap map;
 	World world;
 	OrthographicCamera camera;
-	Vector2 playerPosition = new Vector2(0.5f, 0.5f);
 	Angle playerDirection = new Angle(0);
 	Box2DDebugRenderer b2dr;
 
@@ -43,39 +45,37 @@ public class LGenGame extends ApplicationAdapter {
 	double viewAngle = Math.PI/2;
 	double coneRadius = 250;
 	private final int playerSize = 10;
+	private final int halfPlayerSize = playerSize/2;
 	Body player;
-
+	float playerLinearSpeed = 2000;
+	float playerAngleSpeed = 50;
+	BitmapFont font;
 	TextureMap textureMap;
 
+	Level level;
 	LabyrinthGenerator generator;
 
 	@Override
 	public void create () {
 		world = new World(new Vector2(0,0), false);
+		font = new BitmapFont();
+		level = new Level(gridWidth * (score + 1)/2, gridHeight * (score + 1)/2, world);
+		map = level.getMap();
+		generator = new LabyrinthGenerator(map, map.getCell(0, 0), world);
 
-		map = new WorldMap(gridWidth, gridHeight, cellSize, world);
-
-		BodyBuilder.createBox(world, -halfCellSize - 5, -halfCellSize + gridHeight/2 * cellSize, 10, gridHeight * cellSize + halfCellSize, true, true);
-		BodyBuilder.createBox(world, gridWidth/2 * cellSize - halfCellSize, -halfCellSize - 5, gridWidth * cellSize, 10, true, true);
-		BodyBuilder.createBox(world, gridWidth * cellSize - halfCellSize + 5, -halfCellSize + gridHeight/2 * cellSize, 10, gridHeight * cellSize + halfCellSize, true, true);
-		BodyBuilder.createBox(world, gridWidth/2 * cellSize - halfCellSize, gridHeight * cellSize - halfCellSize + 5, gridWidth * cellSize, 10, true, true);
-
-		generator = new LabyrinthGenerator(map, map.getCell(0, 0), map.getCell(9, 9), world);
-
-		player = BodyBuilder.createBox(world, 15, 15, playerSize, playerSize, false, false);
+		player = BodyBuilder.createBox(world, CELL_SIZE/2.f - playerSize/2.f, CELL_SIZE/2.f - playerSize/2.f, playerSize, playerSize, false, false);
 		player.setActive(true);
 		player.setAwake(true);
 		player.setLinearDamping(20f);
 		player.setAngularDamping(10f);
-
 
 		batch = new SpriteBatch();
 		textureMap = TextureMap.getInstance();
 
 		b2dr = new Box2DDebugRenderer();
 
-		camera = new OrthographicCamera(1920, 1080);
-		camera.translate((new Vector2(playerPosition)).scl(cellSize).add((float) (playerSize/2.f), playerSize/2.f));
+		camera = new OrthographicCamera(1920/4, 1080/4);
+		camera.translate((new Vector2(player.getPosition())).scl(cellSize).add((float) (halfPlayerSize), halfPlayerSize));
 	}
 
 	@Override
@@ -93,16 +93,23 @@ public class LGenGame extends ApplicationAdapter {
 		camera.update();
 
 		generator.step();
-		Vector2 playerPositionChange = processUserInput();
 
-		playerPosition.add(playerPositionChange);
+		if (generator.checkWinCondition(player.getPosition())) {
+			createLevel();
+		}
+
+		processUserInput();
+
 		camera.position.set(player.getPosition().x, player.getPosition().y, 0);
 
 		renderMap();
-		renderPlayerVision(new ConeOfView(coneRadius, new Sector(new Angle(player.getAngle()), viewAngle)));
+		//renderPlayerVision(new ConeOfView(coneRadius, new Sector(new Angle(player.getAngle()), viewAngle)));
+		font.draw(batch, String.valueOf(score), camera.position.x, camera.position.y + CELL_SIZE);
 		renderPlayer();
-		b2dr.render(world, camera.combined.cpy());
+		//b2dr.render(world, camera.combined.cpy());
 		//renderTails();
+
+
 
 		batch.end();
 	}
@@ -116,13 +123,13 @@ public class LGenGame extends ApplicationAdapter {
 	}
 
 	private void renderPlayer() {
-		batch.draw(textureMap.get("player"), player.getPosition().x - playerSize/2, player.getPosition().y - playerSize/2, playerSize/2, playerSize/2, playerSize, playerSize, 1, 1, (new Angle(player.getAngle())).getAngleDeg(), 1, 1, 50, 50, false, false);
+		batch.draw(textureMap.get("player"), player.getPosition().x - halfPlayerSize, player.getPosition().y - halfPlayerSize, halfPlayerSize, halfPlayerSize, playerSize, playerSize, 1, 1, (new Angle(player.getAngle())).getAngleDeg(), 1, 1, 50, 50, false, false);
 	}
 
 	private void renderPlayerVision(ConeOfView coneOfView) {
-		playerPosition = player.getPosition();
 
-		List<Cell> cellsInConeOfView = map.getCellsFromArea(new Vector2(playerPosition.x + playerSize/2.f, playerPosition.y + playerSize/2.f), coneOfView);
+
+		List<Cell> cellsInConeOfView = map.getCellsFromArea(new Vector2(player.getPosition().x + halfPlayerSize, player.getPosition().y + halfPlayerSize), coneOfView);
 
 		for (Cell cell: cellsInConeOfView) {
 			Vector2 cellPosition = new Vector2(cell.getGridPosition()).scl(cellSize);
@@ -161,16 +168,16 @@ public class LGenGame extends ApplicationAdapter {
 			player.setLinearVelocity((new Vector2(5 * delta, 0)).rotateAroundDeg(new Vector2(0, 0), player.getAngle()));
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.A)) {
-			player.setAngularVelocity((float) (50 *  delta));
+			player.setAngularVelocity((float) (playerAngleSpeed *  delta));
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.D)) {
-			player.setAngularVelocity((float) (-50 *  delta));
+			player.setAngularVelocity((float) (-playerAngleSpeed *  delta));
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.S)) {
-			player.setLinearVelocity((new Vector2(-2000 * delta, 0)).rotateAroundRad(new Vector2(0, 0), player.getAngle()));
+			player.setLinearVelocity((new Vector2(-playerLinearSpeed * delta, 0)).rotateAroundRad(new Vector2(0, 0), player.getAngle()));
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.W)) {
-			player.setLinearVelocity((new Vector2(2000 * delta, 0)).rotateAroundRad(new Vector2(0, 0), player.getAngle()));
+			player.setLinearVelocity((new Vector2(playerLinearSpeed * delta, 0)).rotateAroundRad(new Vector2(0, 0), player.getAngle()));
 		}
 		if(Gdx.input.isKeyJustPressed(Input.Keys.E)) {
 			viewAngle += Math.PI/16;
@@ -196,5 +203,15 @@ public class LGenGame extends ApplicationAdapter {
 		}
 
 		return playerPositionChange;
+	}
+
+	private void createLevel() {
+		level.destroy();
+
+		level = new Level(gridWidth * (score + 1)/2, gridHeight * (score + 1)/2, world);
+		map = level.getMap();
+		generator = new LabyrinthGenerator(map, map.getCell(0, 0), world);
+		score++;
+		player.setTransform(CELL_SIZE/2.f - playerSize/2.f, CELL_SIZE/2.f - playerSize/2.f, 0);
 	}
 }

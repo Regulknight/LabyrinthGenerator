@@ -13,18 +13,18 @@ import com.lon.game.logic.utils.BodyBuilder;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.lon.game.logic.utils.Constatns.CELL_SIZE;
+
 public class WorldMap {
     private final int width;
     private final int height;
-    private final int cellSize;
     private final World world;
 
     private final List<List<Cell>> map;
 
-    public WorldMap(int width, int height, int cellSize, World world) {
+    public WorldMap(int width, int height, World world) {
         this.width = width;
         this.height = height;
-        this.cellSize = cellSize;
 
         this.world = world;
 
@@ -37,7 +37,7 @@ public class WorldMap {
         for (int i = 0; i < height; i++) {
             List<Cell> row = new LinkedList<>();
             for (int j = 0; j < width; j++) {
-                Body body = BodyBuilder.createBox(this.world, j*cellSize, i*cellSize, cellSize, cellSize, true, true);
+                Body body = BodyBuilder.createBox(this.world, j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE, true, true);
                 row.add(new Cell(new Vector2(j, i), new WallCell(), body));
             }
             map.add(row);

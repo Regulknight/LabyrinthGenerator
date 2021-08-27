@@ -12,9 +12,11 @@ import com.lon.game.logic.cell.Cell;
 import java.util.*;
 import java.util.function.Predicate;
 
+import static com.lon.game.logic.utils.Constatns.CELL_SIZE;
+
 public class PathBuilder {
     private final double angleOfView = Math.PI/2.0;
-    private final double coneRadius = LGenGame.cellSize * 2.5;
+    private final double coneRadius = CELL_SIZE * 2.5;
 
     private final Map<Angle, ConeOfView> directionConesOfView = new HashMap<>();
     private final WorldMap map;
