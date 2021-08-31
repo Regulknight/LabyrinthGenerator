@@ -1,8 +1,7 @@
 package com.lon.game.logic.generator;
 
-import com.lon.game.logic.WorldMap;
-import com.lon.game.logic.cell.Cell;
+import com.lon.game.logic.tile.Tile;
 
 public interface ExitCreationListener {
-    void fireExitCreation(Cell exit);
+    void fireExitCreation(Tile exit);
 }

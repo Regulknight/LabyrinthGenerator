@@ -1,11 +1,9 @@
 package com.lon.game.logic.generator;
 
-import com.lon.game.logic.WorldMap;
-import com.lon.game.logic.angle.Angle;
-import com.lon.game.logic.cell.Cell;
+import com.lon.game.logic.tile.Tile;
 
 import java.util.List;
 
 public interface BranchGrowStrategy {
-    List<Cell> getCellsForGrowing();
+    List<Tile> getCellsForGrowing();
 }

@@ -1,39 +1,52 @@
 package com.lon.game.logic.generator;
 
 import com.badlogic.gdx.physics.box2d.World;
-import com.lon.game.logic.cell.Cell;
-import com.lon.game.logic.cell.FloorCell;
+import com.lon.game.logic.tile.Tile;
+import com.lon.game.logic.tile.FloorTile;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class PathTree {
-    private int pathLength;
+    private final int pathLength;
     private final World world;
 
-    private final List<Cell> cellList = new LinkedList<>();
+    private final List<Tile> tileList = new LinkedList<>();
     private volatile List<PathTree> activeChildList = new LinkedList<>();
 
     private volatile List<PathTree> closedChildList = new LinkedList<>();
 
     private PathBuilder builder;
 
-    public PathTree(Cell root, PathBuilder builder, int rootPosition, World world) {
-        this.pathLength = rootPosition;
-        this.cellList.add(root);
-        this.builder = builder;
+    public PathTree(Tile root, PathBuilder builder, int rootPosition, World world) {
         this.world = world;
+        this.pathLength = rootPosition;
+
+        add(root);
+
+        this.builder = builder;
     }
-    public Cell getRoot() {
-        return this.cellList.get(0);
+    public Tile getRoot() {
+        return this.tileList.get(0);
     }
 
-    public Cell getTail() {
-        return this.cellList.get(cellList.size() - 1);
+    public Tile getTail() {
+        return this.tileList.get(tileList.size() - 1);
     }
 
-    public List<Cell> getCellList() {
-        return cellList;
+    public List<Tile> getTileList() {
+        return tileList;
+    }
+
+    public void add(Tile tile) {
+        tile.setType(new FloorTile());
+
+        if (tile.getBody() != null) {
+            world.destroyBody(tile.getBody());
+        }
+
+        tile.setBody(null);
+
+        this.tileList.add(tile);
     }
 
     public boolean grow() {
@@ -59,7 +72,7 @@ public class PathTree {
     private boolean growCurrentTree() {
         boolean result = false;
         if (builder.isAbleToBuild(getTail())) {
-            List<Cell> cellsForGrowing = new LinkedList<>();
+            List<Tile> cellsForGrowing = new LinkedList<>();
 
             try {
                 cellsForGrowing = builder.getCellsForGrowing(this);
@@ -67,12 +80,9 @@ public class PathTree {
                 e.printStackTrace();
             }
 
-            for (Cell cell: cellsForGrowing) {
-                cell.setType(new FloorCell());
-                world.destroyBody(cell.getBody());
-                cell.setBody(null);
-                cell.setRemoteness(pathLength + cellList.size());
-                cellList.add(cell);
+            for (Tile tile : cellsForGrowing) {
+                tile.setRemoteness(pathLength + tileList.size());
+                add(tile);
                 result = true;
             }
         }
@@ -81,16 +91,16 @@ public class PathTree {
     }
 
     private boolean growNewChildren() {
-        List<Cell> cellList = getCellForBranching();
+        List<Tile> tileList = getTileForBranching();
 
-        if (!cellList.isEmpty()) {
-            Collections.shuffle(cellList);
+        if (!tileList.isEmpty()) {
+            Collections.shuffle(tileList);
 
-            Cell root = cellList.get(0);
+            Tile root = tileList.get(0);
 
             if (root == null) return false;
 
-            activeChildList.add(new PathTree(root, builder, pathLength + this.cellList.indexOf(root), world));
+            activeChildList.add(new PathTree(root, builder, root.getRemoteness(), world));
 
             return true;
         }
@@ -98,21 +108,21 @@ public class PathTree {
         return false;
     }
 
-    private List<Cell> getCellForBranching() {
-        List<Cell> result = new LinkedList<>();
+    private List<Tile> getTileForBranching() {
+        List<Tile> result = new LinkedList<>();
 
-        for (Cell cell : this.cellList) {
-            if (builder.isAbleToBuild(cell)) {
-                result.add(cell);
+        for (Tile tile : this.tileList) {
+            if (builder.isAbleToBuild(tile)) {
+                result.add(tile);
             }
         }
 
         for (PathTree activeChild: activeChildList) {
-            result.addAll(activeChild.getCellForBranching());
+            result.addAll(activeChild.getTileForBranching());
         }
 
         for (PathTree closedChild: closedChildList) {
-            result.addAll(closedChild.getCellForBranching());
+            result.addAll(closedChild.getTileForBranching());
         }
 
         return result;
@@ -125,31 +135,16 @@ public class PathTree {
             result += tree.getSize();
         }
 
-        return cellList.size() + result;
+        return tileList.size() + result;
     }
 
     public int getPathLength() {
         return this.pathLength;
     }
 
-    public List<Cell> getTails() {
-        List<Cell> tails = new LinkedList<>();
 
-        tails.add(getTail());
-
-        for (PathTree pathTree: activeChildList) {
-            tails.addAll(pathTree.getTails());
-        }
-
-        for (PathTree pathTree: closedChildList) {
-            tails.addAll(pathTree.getTails());
-        }
-
-        return tails;
-    }
-
-    public Cell generateExit() {
-        List<Cell> candidates = new LinkedList<>();
+    public Tile generateExit() {
+        List<Tile> candidates = new LinkedList<>();
 
         candidates.add(getTail());
 
@@ -157,12 +152,7 @@ public class PathTree {
             candidates.add(tree.getTail());
         }
 
-        return candidates.stream().max(new Comparator<Cell>() {
-            @Override
-            public int compare(Cell o1, Cell o2) {
-                return Integer.compare(o1.getRemoteness(), o2.getRemoteness());
-            }
-        }).get();
+        return candidates.stream().max(Comparator.comparingInt(Tile::getRemoteness)).get();
     }
 
 }

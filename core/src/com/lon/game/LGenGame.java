@@ -1,217 +1,306 @@
 package com.lon.game;
 
+import box2dLight.ConeLight;
+import box2dLight.PointLight;
+import box2dLight.RayHandler;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.lon.game.logic.Level;
+import com.lon.game.logic.world.Level;
+import com.lon.game.logic.world.Player;
 import com.lon.game.logic.TextureMap;
-import com.lon.game.logic.WorldMap;
+import com.lon.game.logic.world.TileGrid;
 import com.lon.game.logic.angle.Angle;
 import com.lon.game.logic.area.ConeOfView;
-import com.lon.game.logic.cell.Cell;
-import com.lon.game.logic.generator.LabyrinthGenerator;
-import com.lon.game.logic.utils.BodyBuilder;
+import com.lon.game.logic.area.Sector;
+import com.lon.game.logic.tile.Tile;
+import com.lon.game.logic.world.LabyrinthGenerator;
 
+import java.util.LinkedList;
 import java.util.List;
 
-import static com.lon.game.logic.utils.Constatns.CELL_SIZE;
+import static com.lon.game.logic.world.PlayerConstant.PLAYER_SIZE;
+import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
 
 public class LGenGame extends ApplicationAdapter {
-	public static int cellSize = 40;
-	private static final int halfCellSize = cellSize/2;
+    private int gridWidth = 5;
+    private int gridHeight = 5;
 
-	private final int gridWidth = 8;
-	private final int gridHeight = 8;
+    private int score = 0;
 
-	private int score = 0;
+    SpriteBatch batch;
+    SpriteBatch hudBatch;
+    TileGrid map;
+    World world;
+    OrthographicCamera camera;
+    Box2DDebugRenderer b2dr;
 
-	SpriteBatch batch;
-	WorldMap map;
-	World world;
-	OrthographicCamera camera;
-	Angle playerDirection = new Angle(0);
-	Box2DDebugRenderer b2dr;
+    double rotateAngle = 2 * Math.PI;
+    double viewAngle = Math.PI;
+    double coneRadius = 80;
+    Player player;
 
-	double rotateAngle = 2 * Math.PI;
-	double viewAngle = Math.PI/2;
-	double coneRadius = 250;
-	private final int playerSize = 10;
-	private final int halfPlayerSize = playerSize/2;
-	Body player;
-	float playerLinearSpeed = 2000;
-	float playerAngleSpeed = 50;
-	BitmapFont font;
-	TextureMap textureMap;
+    BitmapFont font;
+    TextureMap textureMap;
+    float timer = 0;
 
-	Level level;
-	LabyrinthGenerator generator;
+    int playerId = 0;
+    List<Color> playersColors;
 
-	@Override
-	public void create () {
-		world = new World(new Vector2(0,0), false);
-		font = new BitmapFont();
-		level = new Level(gridWidth * (score + 1)/2, gridHeight * (score + 1)/2, world);
-		map = level.getMap();
-		generator = new LabyrinthGenerator(map, map.getCell(0, 0), world);
+    List<PointLight> lightList;
 
-		player = BodyBuilder.createBox(world, CELL_SIZE/2.f - playerSize/2.f, CELL_SIZE/2.f - playerSize/2.f, playerSize, playerSize, false, false);
-		player.setActive(true);
-		player.setAwake(true);
-		player.setLinearDamping(20f);
-		player.setAngularDamping(10f);
+    RayHandler rayHandler;
 
-		batch = new SpriteBatch();
-		textureMap = TextureMap.getInstance();
+    ConeLight coneLight;
+    PointLight pointLight;
 
-		b2dr = new Box2DDebugRenderer();
+    Level level;
+    LabyrinthGenerator labyrinth;
 
-		camera = new OrthographicCamera(1920/4, 1080/4);
-		camera.translate((new Vector2(player.getPosition())).scl(cellSize).add((float) (halfPlayerSize), halfPlayerSize));
-	}
+    boolean isMapOpen = false;
 
-	@Override
-	public void render () {
-		world.step(60, 1, 1);
+    @Override
+    public void create() {
+        world = new World(new Vector2(0, 0), false);
+        font = new BitmapFont();
+        textureMap = TextureMap.getInstance();
 
-		Gdx.gl20.glClearColor(.25f, .25f, .25f, 1f);
-		Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        lightList = new LinkedList<>();
 
-		ScreenUtils.clear(0, 0, 0, 1);
-		batch.setProjectionMatrix(camera.combined);
+        player = new Player(world, textureMap.get("player"));
 
+        createLevel(1, 1);
 
-		batch.begin();
-		camera.update();
+        batch = new SpriteBatch();
+        hudBatch = new SpriteBatch();
 
-		generator.step();
+        b2dr = new Box2DDebugRenderer();
 
-		if (generator.checkWinCondition(player.getPosition())) {
-			createLevel();
-		}
+        camera = new OrthographicCamera(1920, 1080);
+        camera.zoom = 0.1f;
+        camera.translate(player.getCenter());
 
-		processUserInput();
+        rayHandler = new RayHandler(world);
+        rayHandler.setCombinedMatrix(camera.combined.cpy());
 
-		camera.position.set(player.getPosition().x, player.getPosition().y, 0);
+        Color color = new Color(0.3f, 0.3f, 0.25f, 1f);
 
-		renderMap();
-		//renderPlayerVision(new ConeOfView(coneRadius, new Sector(new Angle(player.getAngle()), viewAngle)));
-		font.draw(batch, String.valueOf(score), camera.position.x, camera.position.y + CELL_SIZE);
-		renderPlayer();
-		//b2dr.render(world, camera.combined.cpy());
-		//renderTails();
+        coneLight = new ConeLight(rayHandler, 1000, color, 200, 0, 0, 0, 60);
+        coneLight.attachToBody(player.getBody());
+        coneLight.setSoft(true);
 
+        pointLight = new PointLight(rayHandler, 1000, color, TILE_SIZE, 0, 0);
+        pointLight.setXray(true);
+        pointLight.attachToBody(player.getBody());
+        pointLight.setIgnoreAttachedBody(true);
 
+        playersColors = new LinkedList<>();
+        playersColors.add(new Color(0.2f, 1.0f, 0.2f, 0.4f));
+        playersColors.add(new Color(0.2f, 1.0f, 1.0f, 0.4f));
+        playersColors.add(new Color(0.2f, 0.2f, 1.0f, 0.4f));
+        playersColors.add(new Color(1.f, 0.2f, 0.2f, 0.4f));
+    }
 
-		batch.end();
-	}
+    @Override
+    public void render() {
+        world.step(60, 1, 1);
 
-	private void renderMap() {
-		for (List<Cell> row: map.getMap()) {
-			for (Cell cell : row) {
-				drawCell(cell);
-			}
-		}
-	}
+        float delta = Gdx.graphics.getDeltaTime();
+        timer += delta;
 
-	private void renderPlayer() {
-		batch.draw(textureMap.get("player"), player.getPosition().x - halfPlayerSize, player.getPosition().y - halfPlayerSize, halfPlayerSize, halfPlayerSize, playerSize, playerSize, 1, 1, (new Angle(player.getAngle())).getAngleDeg(), 1, 1, 50, 50, false, false);
-	}
-
-	private void renderPlayerVision(ConeOfView coneOfView) {
+        Gdx.gl20.glClearColor(.25f, .25f, .25f, 1f);
+        Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 
-		List<Cell> cellsInConeOfView = map.getCellsFromArea(new Vector2(player.getPosition().x + halfPlayerSize, player.getPosition().y + halfPlayerSize), coneOfView);
+        processUserInput();
+        camera.update();
+        batch.setProjectionMatrix(camera.combined);
+        rayHandler.setCombinedMatrix(camera.combined);
 
-		for (Cell cell: cellsInConeOfView) {
-			Vector2 cellPosition = new Vector2(cell.getGridPosition()).scl(cellSize);
-			batch.draw(textureMap.get("light"), cellPosition.x, cellPosition.y, cellSize, cellSize);
-		}
-	}
+        if (!isMapOpen) {
+            batch.begin();
+            ScreenUtils.clear(0, 0, 0, 1);
 
-	private void renderTails() {
-		for (Cell cell: generator.getPathThree().getTails()) {
-			Vector2 cellPosition = new Vector2(cell.getGridPosition()).scl(cellSize);
-			batch.draw(textureMap.get("light"), cellPosition.x, cellPosition.y, cellSize, cellSize);
-		}
-	}
+            labyrinth.generationStep(delta);
 
-	private void drawCell(Cell cell) {
-		Vector2 cellPosition = new Vector2(cell.getGridPosition()).scl(cellSize);
-		batch.draw(textureMap.get(cell.getTextureKey()), cellPosition.x, cellPosition.y, cellSize, cellSize);
-	}
-	
-	@Override
-	public void dispose () {
-		batch.dispose();
-		b2dr.dispose();
-		textureMap.dispose();
-	}
+            //light();
 
-	private Vector2 processUserInput() {
-		Vector2 playerPositionChange = new Vector2(0 , 0);
+            camera.position.set(player.getCenter(), 0);
 
-		float delta = Gdx.graphics.getDeltaTime();
+            calculatePlayerVision();
+            map.render(batch);
+            player.render(batch);
 
-		if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-			playerDirection = new Angle(Gdx.input.getX() - camera.viewportWidth/2.f, - Gdx.input.getY() + camera.viewportHeight/2.f);
-			player.getTransform().setRotation((float) playerDirection.getRadians());
+            batch.end();
+            //b2dr.render(world, camera.combined.cpy());
+            rayHandler.updateAndRender();
+        }
 
-			player.setLinearVelocity((new Vector2(5 * delta, 0)).rotateAroundDeg(new Vector2(0, 0), player.getAngle()));
-		}
-		if(Gdx.input.isKeyPressed(Input.Keys.A)) {
-			player.setAngularVelocity((float) (playerAngleSpeed *  delta));
-		}
-		if(Gdx.input.isKeyPressed(Input.Keys.D)) {
-			player.setAngularVelocity((float) (-playerAngleSpeed *  delta));
-		}
-		if(Gdx.input.isKeyPressed(Input.Keys.S)) {
-			player.setLinearVelocity((new Vector2(-playerLinearSpeed * delta, 0)).rotateAroundRad(new Vector2(0, 0), player.getAngle()));
-		}
-		if(Gdx.input.isKeyPressed(Input.Keys.W)) {
-			player.setLinearVelocity((new Vector2(playerLinearSpeed * delta, 0)).rotateAroundRad(new Vector2(0, 0), player.getAngle()));
-		}
-		if(Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-			viewAngle += Math.PI/16;
-		}
-		if(Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
-			viewAngle -= Math.PI/16;
-		}
-		if(Gdx.input.isKeyPressed(Input.Keys.UP)) {
-			camera.zoom += 0.1;
-		}
-		if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-			camera.zoom -= 0.1;
-		}
-		if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-			rotateAngle += Math.PI/32;
-		}
-		if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-			rotateAngle -= Math.PI/32;
-		}
+        renderHud();
 
-		if(Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+        if (labyrinth.checkWinCondition(player.getPosition())) {
+            createLevel(1, 1);
+        }
+    }
 
-		}
+    private void renderHud() {
+        hudBatch.begin();
 
-		return playerPositionChange;
-	}
+        font.draw(hudBatch, "Score: " + score, 5, 470);
+        font.draw(hudBatch, "Time: " + Math.round(timer * 100) / 100.0, 5, 450);
 
-	private void createLevel() {
-		level.destroy();
+        if (isMapOpen) {
+            renderHistory(hudBatch);
+        }
 
-		level = new Level(gridWidth * (score + 1)/2, gridHeight * (score + 1)/2, world);
-		map = level.getMap();
-		generator = new LabyrinthGenerator(map, map.getCell(0, 0), world);
-		score++;
-		player.setTransform(CELL_SIZE/2.f - playerSize/2.f, CELL_SIZE/2.f - playerSize/2.f, 0);
-	}
+        hudBatch.end();
+    }
+
+    private void calculatePlayerVision() {
+        for (Tile tile : map.getTilesFromArea(player.getPosition(), new ConeOfView(300, new Sector(0, (float) (2 * Math.PI))))) {
+            Vector2 position = tile.getPixelPosition();
+
+            if (rayHandler.pointAtLight(position.x, position.y) && inViewPort(position)) {
+                tile.setVisionLevel(1);
+                tile.setVisionType(tile.getType());
+            }
+        }
+    }
+
+    private boolean inViewPort(Vector2 point) {
+        boolean inArea = player.getPosition().x - camera.viewportWidth * camera.zoom / 2 < point.x;
+        inArea &= point.x < player.getPosition().x + camera.viewportWidth * camera.zoom / 2;
+        inArea &= player.getPosition().y - camera.viewportHeight * camera.zoom / 2 < point.y;
+        inArea &= point.y < player.getPosition().y + camera.viewportHeight * camera.zoom / 2;
+
+        return inArea;
+    }
+
+    private void renderHistory(Batch batch) {
+        for (List<Tile> row : map.getGrid()) {
+            for (Tile tile : row) {
+                if (tile.getVisionLevel() > 0)
+                    drawHistoryCell(tile, batch);
+            }
+        }
+    }
+
+    private void light() {
+        int x = (int) (player.getPosition().x / TILE_SIZE);
+        int y = (int) (player.getPosition().y / TILE_SIZE);
+
+        Tile tile = map.getTile(x, y);
+
+        PointLight pl = tile.addLight(playerId, playersColors.get(playerId), rayHandler);
+        if (pl != null) {
+            lightList.add(pl);
+        }
+
+    }
+
+    private void drawHistoryCell(Tile tile, Batch batch) {
+        int size = 460 / gridHeight;
+        int mapSize = size * gridHeight;
+        int xOffset = (640 - mapSize) / 2;
+        int yOffset = 10;
+
+        Vector2 cellPosition = new Vector2(tile.getGridPosition()).scl(size);
+        batch.draw(tile.getVisionType().getTexture(), cellPosition.x + xOffset, cellPosition.y + yOffset, size, size);
+    }
+
+    @Override
+    public void dispose() {
+        batch.dispose();
+        b2dr.dispose();
+        textureMap.dispose();
+        hudBatch.dispose();
+        rayHandler.dispose();
+    }
+
+    private void processUserInput() {
+        float delta = Gdx.graphics.getDeltaTime();
+
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+            float playerDirection = Angle.getAngle(Gdx.input.getX() - camera.viewportWidth / 2.f, -Gdx.input.getY() + camera.viewportHeight / 2.f);
+            player.setAngle(playerDirection);
+
+            player.move(delta);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+            player.rotate(delta);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+            player.rotate(-delta);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+            player.move(-delta);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+            player.move(delta);
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+            viewAngle += Math.PI / 16;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
+            viewAngle -= Math.PI / 16;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+            camera.zoom += 0.01;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+            camera.zoom -= 0.01;
+            if (camera.zoom <= 0.1) {
+                camera.zoom = 0.1f;
+            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            rotateAngle += Math.PI / 32;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            rotateAngle -= Math.PI / 32;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+           if (playerId < 3) {
+               playerId++;
+           } else {
+               playerId = 0;
+           }
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
+            isMapOpen = !isMapOpen;
+        }
+    }
+
+    private void createLevel(int startX, int startY) {
+        if (level != null) {
+            for (PointLight light : lightList) {
+                light.remove();
+            }
+            lightList.clear();
+
+            level.destroy();
+            score++;
+            camera.zoom += 0.05;
+            gridWidth += 2;
+            gridHeight += 2;
+        }
+
+        level = new Level(gridWidth, gridHeight, world);
+        map = level.getMap();
+        labyrinth = new LabyrinthGenerator(map, map.getTile(startX, startY), world);
+
+        player.setTransform(new Vector2(startX, startY).scl(TILE_SIZE).add((TILE_SIZE - PLAYER_SIZE) / 2f, (TILE_SIZE - PLAYER_SIZE) / 2f));
+    }
 }

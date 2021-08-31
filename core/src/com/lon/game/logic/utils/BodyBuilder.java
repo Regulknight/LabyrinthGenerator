@@ -3,7 +3,7 @@ package com.lon.game.logic.utils;
 
 import com.badlogic.gdx.physics.box2d.*;
 
-import static com.lon.game.logic.utils.Constatns.CELL_SIZE;
+import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
 
 public class BodyBuilder {
 
@@ -16,7 +16,7 @@ public class BodyBuilder {
         else
             def.type = BodyDef.BodyType.DynamicBody;
 
-        def.position.set(x + CELL_SIZE / 2.f, y + CELL_SIZE / 2.f);
+        def.position.set(x + TILE_SIZE / 2.f, y + TILE_SIZE / 2.f);
         def.fixedRotation = fixedRotation;
         pBody = world.createBody(def);
         pBody.setUserData("wall");
