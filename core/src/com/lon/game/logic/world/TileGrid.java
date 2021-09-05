@@ -2,15 +2,11 @@ package com.lon.game.logic.world;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 
 import com.lon.game.logic.area.Area;
-import com.lon.game.logic.tile.ExitTile;
-import com.lon.game.logic.tile.FloorTile;
 import com.lon.game.logic.tile.Tile;
-import com.lon.game.logic.tile.WallTile;
-import com.lon.game.logic.utils.BodyBuilder;
+import com.lon.game.logic.utils.TileBuilder;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -21,16 +17,19 @@ public class TileGrid {
     private final World world;
     private final int width;
     private final int height;
+    private final TileBuilder tileBuilder;
 
     private final List<List<Tile>> grid;
 
-    public TileGrid(int width, int height, World world) {
+    public TileGrid(int width, int height, World world, TileBuilder tileBuilder) {
         this.width = width;
         this.height = height;
 
         this.world = world;
+        this.tileBuilder = tileBuilder;
 
         this.grid = initGrid();
+
     }
 
     private List<List<Tile>> initGrid() {
@@ -39,8 +38,7 @@ public class TileGrid {
         for (int i = 0; i < height; i++) {
             List<Tile> row = new LinkedList<>();
             for (int j = 0; j < width; j++) {
-                Body body = BodyBuilder.createBox(this.world, j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, true, true);
-                row.add(new Tile(new Vector2(j, i), new WallTile(), body));
+                row.add(tileBuilder.createTile(world, new Vector2(j, i)));
             }
             map.add(row);
         }
@@ -76,8 +74,7 @@ public class TileGrid {
     public void render(Batch batch) {
         for (List<Tile> row : grid) {
             for (Tile tile : row) {
-                Vector2 cellPosition = new Vector2(tile.getGridPosition()).scl(TILE_SIZE);
-                batch.draw(tile.getTexture(), tile.getX(), tile.getY(), TILE_SIZE, TILE_SIZE);
+                tile.render(batch);
             }
         }
     }

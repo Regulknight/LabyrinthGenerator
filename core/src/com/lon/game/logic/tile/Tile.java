@@ -4,56 +4,60 @@ import box2dLight.PointLight;
 import box2dLight.RayHandler;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.lon.game.logic.TextureMap;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
 
-public class Tile implements HasTexture {
+public abstract class Tile implements HasTexture {
     private Vector2 gridPosition;
-    private TileType type;
-    private TileType visionType;
+    protected TileType type;
+    protected Texture texture;
     private Body body;
     private int remoteness;
     private int visionLevel;
     private boolean lighted;
     private Map<Integer, PointLight> playerLights;
-    private List<Vector2> lightPoints;
+    protected List<Vector2> lightPoints;
 
-    public Tile(Vector2 gridPosition, TileType type, Body body) {
+    public Tile(Vector2 gridPosition, Body body, TileType type, Texture texture) {
         this.gridPosition = gridPosition;
         this.type = type;
+        this.texture = texture;
         this.body = body;
-        lightPoints = new LinkedList<>();
-        lightPoints.add(new Vector2(getCenterX() - TILE_SIZE /5.f, getCenterY() + TILE_SIZE /5.f));
-        lightPoints.add(new Vector2(getCenterX() + TILE_SIZE /5.f, getCenterY() + TILE_SIZE /5.f));
-        lightPoints.add(new Vector2(getCenterX() - TILE_SIZE /5.f, getCenterY() - TILE_SIZE /5.f));
-        lightPoints.add(new Vector2(getCenterX() + TILE_SIZE /5.f, getCenterY() - TILE_SIZE /5.f));
+        lightPoints = createLightsPositions();
 
-        this.playerLights = new HashMap<>();
+        playerLights = new HashMap<>();
     }
 
-    public TileType getType() {
-        return type;
-    }
+    protected List<Vector2> createLightsPositions() {
+        List<Vector2> result = new LinkedList<>();
 
-    public void setType(TileType type) {
-        this.type = type;
-    }
+        result.add(new Vector2(getCenterX() - TILE_SIZE /5.f, getCenterY() + TILE_SIZE /5.f));
+        result.add(new Vector2(getCenterX() + TILE_SIZE /5.f, getCenterY() + TILE_SIZE /5.f));
+        result.add(new Vector2(getCenterX() - TILE_SIZE /5.f, getCenterY() - TILE_SIZE /5.f));
+        result.add(new Vector2(getCenterX() + TILE_SIZE /5.f, getCenterY() - TILE_SIZE /5.f));
+
+        return result;
+    };
 
     public boolean isSolid() {
-        return type.isSolid();
+        return body != null;
     }
-
 
     public Vector2 getGridPosition() {
         return this.gridPosition;
     }
 
     public Texture getTexture() {
-        return type.getTexture();
+        return this.texture;
     }
 
     public Vector2 getPixelPosition() {
@@ -100,14 +104,6 @@ public class Tile implements HasTexture {
         this.visionLevel = visionLevel;
     }
 
-    public TileType getVisionType() {
-        return visionType;
-    }
-
-    public void setVisionType(TileType visionType) {
-        this.visionType = visionType;
-    }
-
     public boolean isLighted() {
         return lighted;
     }
@@ -137,5 +133,22 @@ public class Tile implements HasTexture {
 
         return result;
 
+    }
+
+    public void setType(TileType type) {
+        this.type = type;
+        this.texture = TextureMap.getInstance().get(type);
+    }
+
+    public TileType getType() {
+        return this.type;
+    }
+
+    public void render(Batch batch) {
+        batch.draw(texture, getX(), getY());
+    }
+
+    public boolean containCoord(Vector2 coord) {
+        return Vector2.dst(getCenterX(), getCenterY(), coord.x, coord.y) < TILE_SIZE/4.f;
     }
 }

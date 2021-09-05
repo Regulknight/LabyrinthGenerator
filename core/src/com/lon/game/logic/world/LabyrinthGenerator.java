@@ -5,9 +5,9 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.lon.game.logic.generator.ExitCreationListener;
 import com.lon.game.logic.generator.PathBuilder;
 import com.lon.game.logic.generator.PathTree;
-import com.lon.game.logic.tile.ExitTile;
 import com.lon.game.logic.tile.Tile;
-import com.lon.game.logic.tile.FloorTile;
+import com.lon.game.logic.tile.TileType;
+import com.lon.game.logic.utils.BodyBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ public class LabyrinthGenerator{
                 growingFlag = pathThree.grow();
             } else if (exit == null) {
                 exit = pathThree.generateExit();
-                exit.setType(new ExitTile());
+                exit.setType(TileType.EXIT);
                 notifyExitCreationListeners(exit);
             }
         }
@@ -67,6 +67,6 @@ public class LabyrinthGenerator{
     }
 
     public boolean checkWinCondition(Vector2 playerPosition) {
-        return exit != null && playerPosition.dst(exit.getPixelPosition()) < TILE_SIZE /2.f;
+        return exit != null && exit.containCoord(playerPosition);
     }
 }

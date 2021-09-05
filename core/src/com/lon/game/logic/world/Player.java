@@ -15,7 +15,7 @@ public class Player {
     private final Texture texture;
 
     public Player(World world, Texture texture) {
-        this.body = BodyBuilder.createBox(world, 0, 0, PLAYER_SIZE, PLAYER_SIZE, false, false);
+        this.body = BodyBuilder.createRectangle(world, 0, 0, PLAYER_SIZE, PLAYER_SIZE, false, false);
         this.texture = texture;
         this.body.setActive(true);
         this.body.setAwake(true);
@@ -24,7 +24,7 @@ public class Player {
     }
 
     public Vector2 getPosition() {
-        return body.getPosition().cpy().add(-PLAYER_SIZE/2.f, -PLAYER_SIZE/2.f);
+        return body.getPosition().cpy();
     }
 
     public Vector2 getCenter() {
@@ -57,7 +57,7 @@ public class Player {
 
     public void render(Batch batch) {
         float halfSize = PLAYER_SIZE/2.f;
-        batch.draw(texture, getX(), getY(), halfSize, halfSize, PLAYER_SIZE, PLAYER_SIZE, 1, 1, getAngleDeg(), 1, 1, 50, 50, false, false);
+        batch.draw(texture, getX() - halfSize, getY() - halfSize, halfSize, halfSize, PLAYER_SIZE, PLAYER_SIZE, 1, 1, getAngleDeg(), 1, 1, 50, 50, false, false);
     }
 
     public void move(float delta) {

@@ -2,7 +2,7 @@ package com.lon.game.logic.generator;
 
 import com.badlogic.gdx.physics.box2d.World;
 import com.lon.game.logic.tile.Tile;
-import com.lon.game.logic.tile.FloorTile;
+import com.lon.game.logic.tile.TileType;
 
 import java.util.*;
 
@@ -38,7 +38,12 @@ public class PathTree {
     }
 
     public void add(Tile tile) {
-        tile.setType(new FloorTile());
+        Random random = new Random();
+        int r = random.nextInt(10);
+
+        if (r < 9)
+            tile.setType(TileType.FLOOR);
+        else tile.setType(TileType.FLOOR2);
 
         if (tile.getBody() != null) {
             world.destroyBody(tile.getBody());

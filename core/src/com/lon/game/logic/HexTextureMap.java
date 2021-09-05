@@ -4,34 +4,36 @@ import com.badlogic.gdx.graphics.Texture;
 
 import java.util.HashMap;
 
-public class TextureMap extends HashMap<String, Texture> {
-    protected static TextureMap instance;
+public class HexTextureMap extends HashMap<String, Texture> {
 
-    protected TextureMap() {
+    protected static HexTextureMap instance;
+
+    public HexTextureMap() {
         super();
 
         loadTexturesMapping();
     }
 
-    public static TextureMap getInstance() {
+    public static HexTextureMap getInstance() {
         if (instance == null) {
-            instance = new TextureMap();
+            instance = new HexTextureMap();
         }
         return instance;
     }
 
     //TODO add mappingLoading
     private void loadTexturesMapping() {
-        put("floor", new Texture("wall.png"));
+        put("floor", new Texture("hex-floor.png"));
+        put("floor2", new Texture("hex-floor-2.png"));
         put("light", new Texture("light.png"));
         put("player", new Texture("player.png"));
-        put("wall", new Texture("floor.png"));
-        put("exit", new Texture("light.png"));
+        put("wall", new Texture("hex-wall.png"));
+        put("exit", new Texture("hex-exit.png"));
         put("shade", new Texture("shade.png"));
     }
 
     public void dispose() {
-        for (Texture texture: values()) {
+        for (Texture texture : values()) {
             texture.dispose();
         }
     }

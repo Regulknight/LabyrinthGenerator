@@ -3,7 +3,8 @@ package com.lon.game.logic.world;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import com.lon.game.logic.tile.Tile;
-import com.lon.game.logic.world.TileGrid;
+import com.lon.game.logic.tile.TileType;
+import com.lon.game.logic.utils.HexagonTileBuilder;
 import com.lon.game.logic.utils.BodyBuilder;
 
 import java.util.LinkedList;
@@ -18,16 +19,7 @@ public class Level {
 
     public Level(int gridWidth, int gridHeight, World world) {
         this.world = world;
-        this.map = new TileGrid(gridWidth, gridHeight, world);
-        
-        createBorders(gridWidth, gridHeight);
-    }
-    
-    private void createBorders(int gridWidth, int gridHeight) {
-        levelBorders.add(BodyBuilder.createBox(world, -TILE_SIZE /2.f - 5, -TILE_SIZE /2.f + gridHeight/2.f * TILE_SIZE, 10, gridHeight * TILE_SIZE + TILE_SIZE /2, true, true));
-        levelBorders.add(BodyBuilder.createBox(world, gridWidth/2.f * TILE_SIZE - TILE_SIZE /2.f, -TILE_SIZE /2.f - 5, gridWidth * TILE_SIZE, 10, true, true));
-        levelBorders.add(BodyBuilder.createBox(world, gridWidth * TILE_SIZE - TILE_SIZE /2.f + 5, -TILE_SIZE /2.f + gridHeight/2.f * TILE_SIZE, 10, gridHeight * TILE_SIZE + TILE_SIZE /2, true, true));
-        levelBorders.add(BodyBuilder.createBox(world, gridWidth/2.f * TILE_SIZE - TILE_SIZE /2.f, gridHeight * TILE_SIZE - TILE_SIZE /2.f + 5, gridWidth * TILE_SIZE, 10, true, true));
+        this.map = new TileGrid(gridWidth, gridHeight, world, new HexagonTileBuilder(TileType.WALL));
     }
 
     public void destroy() {

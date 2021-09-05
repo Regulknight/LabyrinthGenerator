@@ -16,9 +16,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.lon.game.logic.HexTextureMap;
 import com.lon.game.logic.world.Level;
 import com.lon.game.logic.world.Player;
-import com.lon.game.logic.TextureMap;
 import com.lon.game.logic.world.TileGrid;
 import com.lon.game.logic.angle.Angle;
 import com.lon.game.logic.area.ConeOfView;
@@ -29,12 +29,9 @@ import com.lon.game.logic.world.LabyrinthGenerator;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.lon.game.logic.world.PlayerConstant.PLAYER_SIZE;
-import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
-
 public class LGenGame extends ApplicationAdapter {
-    private int gridWidth = 5;
-    private int gridHeight = 5;
+    private int gridWidth = 7;
+    private int gridHeight = 7;
 
     private int score = 0;
 
@@ -51,7 +48,7 @@ public class LGenGame extends ApplicationAdapter {
     Player player;
 
     BitmapFont font;
-    TextureMap textureMap;
+    HexTextureMap textureMap;
     float timer = 0;
 
     int playerId = 0;
@@ -61,8 +58,8 @@ public class LGenGame extends ApplicationAdapter {
 
     RayHandler rayHandler;
 
-    ConeLight coneLight;
-    PointLight pointLight;
+    ConeLight forwardLight;
+    ConeLight backwardLight;
 
     Level level;
     LabyrinthGenerator labyrinth;
@@ -73,7 +70,7 @@ public class LGenGame extends ApplicationAdapter {
     public void create() {
         world = new World(new Vector2(0, 0), false);
         font = new BitmapFont();
-        textureMap = TextureMap.getInstance();
+        textureMap = HexTextureMap.getInstance();
 
         lightList = new LinkedList<>();
 
@@ -92,23 +89,25 @@ public class LGenGame extends ApplicationAdapter {
 
         rayHandler = new RayHandler(world);
         rayHandler.setCombinedMatrix(camera.combined.cpy());
+        rayHandler.setAmbientLight(0.225f);
 
         Color color = new Color(0.3f, 0.3f, 0.25f, 1f);
 
-        coneLight = new ConeLight(rayHandler, 1000, color, 200, 0, 0, 0, 60);
-        coneLight.attachToBody(player.getBody());
-        coneLight.setSoft(true);
+        forwardLight = new ConeLight(rayHandler, 1000, color, 400, 0, 0, 0, 45);
+        forwardLight.attachToBody(player.getBody(), 5, 0);
+        forwardLight.setIgnoreAttachedBody(true);
+        forwardLight.setSoft(true);
 
-        pointLight = new PointLight(rayHandler, 1000, color, TILE_SIZE, 0, 0);
-        pointLight.setXray(true);
-        pointLight.attachToBody(player.getBody());
-        pointLight.setIgnoreAttachedBody(true);
+        backwardLight = new ConeLight(rayHandler, 1000, color, 200, 0, 0, 90, 135);
+        backwardLight.attachToBody(player.getBody(), 5, 0, 180);
+        backwardLight.setIgnoreAttachedBody(true);
+        backwardLight.setSoft(false);
 
         playersColors = new LinkedList<>();
-        playersColors.add(new Color(0.2f, 1.0f, 0.2f, 0.4f));
-        playersColors.add(new Color(0.2f, 1.0f, 1.0f, 0.4f));
-        playersColors.add(new Color(0.2f, 0.2f, 1.0f, 0.4f));
-        playersColors.add(new Color(1.f, 0.2f, 0.2f, 0.4f));
+        playersColors.add(new Color(0.2f, 1.0f, 0.2f, 0.8f));
+        playersColors.add(new Color(0.2f, 1.0f, 1.0f, 0.8f));
+        playersColors.add(new Color(0.2f, 0.2f, 1.0f, 0.8f));
+        playersColors.add(new Color(1.f, 0.2f, 0.2f, 0.8f));
     }
 
     @Override
@@ -172,7 +171,7 @@ public class LGenGame extends ApplicationAdapter {
 
             if (rayHandler.pointAtLight(position.x, position.y) && inViewPort(position)) {
                 tile.setVisionLevel(1);
-                tile.setVisionType(tile.getType());
+//                tile.setVisionType(tile.getType());
             }
         }
     }
@@ -196,10 +195,7 @@ public class LGenGame extends ApplicationAdapter {
     }
 
     private void light() {
-        int x = (int) (player.getPosition().x / TILE_SIZE);
-        int y = (int) (player.getPosition().y / TILE_SIZE);
-
-        Tile tile = map.getTile(x, y);
+        Tile tile = getFromCoordinate(player.getCenter());
 
         PointLight pl = tile.addLight(playerId, playersColors.get(playerId), rayHandler);
         if (pl != null) {
@@ -215,7 +211,7 @@ public class LGenGame extends ApplicationAdapter {
         int yOffset = 10;
 
         Vector2 cellPosition = new Vector2(tile.getGridPosition()).scl(size);
-        batch.draw(tile.getVisionType().getTexture(), cellPosition.x + xOffset, cellPosition.y + yOffset, size, size);
+//        batch.draw(tile.getVisionType().getTexture(), cellPosition.x + xOffset, cellPosition.y + yOffset, size, size);
     }
 
     @Override
@@ -231,7 +227,8 @@ public class LGenGame extends ApplicationAdapter {
         float delta = Gdx.graphics.getDeltaTime();
 
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            float playerDirection = Angle.getAngle(Gdx.input.getX() - camera.viewportWidth / 2.f, -Gdx.input.getY() + camera.viewportHeight / 2.f);
+            float playerDirection = Angle.getAngle(Gdx.input.getX() - camera.viewportWidth/2.f, camera.viewportHeight/2.f - Gdx.input.getY());
+            System.out.println(playerDirection);
             player.setAngle(playerDirection);
 
             player.move(delta);
@@ -301,6 +298,18 @@ public class LGenGame extends ApplicationAdapter {
         map = level.getMap();
         labyrinth = new LabyrinthGenerator(map, map.getTile(startX, startY), world);
 
-        player.setTransform(new Vector2(startX, startY).scl(TILE_SIZE).add((TILE_SIZE - PLAYER_SIZE) / 2f, (TILE_SIZE - PLAYER_SIZE) / 2f));
+        Tile start = map.getTile(1, 1);
+        player.setTransform(new Vector2(start.getCenterX(), start.getCenterY()));
+    }
+
+    public Tile getFromCoordinate(Vector2 coord) {
+        for (List<Tile> row: map.getGrid()) {
+            for (Tile tile: row) {
+                if (tile.containCoord(coord)) {
+                    return tile;
+                }
+            }
+        }
+        return null;
     }
 }

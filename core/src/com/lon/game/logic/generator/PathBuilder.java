@@ -12,7 +12,7 @@ import java.util.*;
 import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
 
 public class PathBuilder {
-    private final float angleOfView = (float) (Math.PI/2.0);
+    private final float angleOfView = (float) (Math.PI * 0.5);
     private final double coneRadius = TILE_SIZE * 2.5;
 
     private final Map<Float, ConeOfView> directionConesOfView = new HashMap<>();
