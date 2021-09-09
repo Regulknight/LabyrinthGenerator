@@ -11,9 +11,8 @@ public class PathTree {
     private final World world;
 
     private final List<Tile> tileList = new LinkedList<>();
-    private volatile List<PathTree> activeChildList = new LinkedList<>();
-
-    private volatile List<PathTree> closedChildList = new LinkedList<>();
+    private final List<PathTree> activeChildList = new LinkedList<>();
+    private final List<PathTree> closedChildList = new LinkedList<>();
 
     private PathBuilder builder;
 
@@ -25,6 +24,7 @@ public class PathTree {
 
         this.builder = builder;
     }
+
     public Tile getRoot() {
         return this.tileList.get(0);
     }
@@ -61,7 +61,7 @@ public class PathTree {
     private boolean growActiveChildren() {
         boolean result = false;
 
-        for (PathTree child: activeChildList) {
+        for (PathTree child : activeChildList) {
             boolean growStatus = child.grow();
             if (!growStatus) {
                 closedChildList.add(child);
@@ -77,19 +77,14 @@ public class PathTree {
     private boolean growCurrentTree() {
         boolean result = false;
         if (builder.isAbleToBuild(getTail())) {
-            List<Tile> cellsForGrowing = new LinkedList<>();
-
-            try {
-                cellsForGrowing = builder.getCellsForGrowing(this);
-            } catch (PathBuildException e) {
-                e.printStackTrace();
-            }
+            List<Tile> cellsForGrowing = builder.getCellsForGrowing(this);
 
             for (Tile tile : cellsForGrowing) {
                 tile.setRemoteness(pathLength + tileList.size());
                 add(tile);
                 result = true;
             }
+
         }
 
         return result;
@@ -122,11 +117,11 @@ public class PathTree {
             }
         }
 
-        for (PathTree activeChild: activeChildList) {
+        for (PathTree activeChild : activeChildList) {
             result.addAll(activeChild.getTileForBranching());
         }
 
-        for (PathTree closedChild: closedChildList) {
+        for (PathTree closedChild : closedChildList) {
             result.addAll(closedChild.getTileForBranching());
         }
 
@@ -136,7 +131,7 @@ public class PathTree {
     public int getSize() {
         int result = 0;
 
-        for (PathTree tree: activeChildList) {
+        for (PathTree tree : activeChildList) {
             result += tree.getSize();
         }
 
@@ -153,7 +148,7 @@ public class PathTree {
 
         candidates.add(getTail());
 
-        for (PathTree tree: closedChildList) {
+        for (PathTree tree : closedChildList) {
             candidates.add(tree.getTail());
         }
 

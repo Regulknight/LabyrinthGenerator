@@ -5,12 +5,9 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.lon.game.logic.tile.Tile;
 import com.lon.game.logic.tile.TileType;
 import com.lon.game.logic.utils.HexagonTileBuilder;
-import com.lon.game.logic.utils.BodyBuilder;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
 
 public class Level {
     private World world;

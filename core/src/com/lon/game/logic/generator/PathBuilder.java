@@ -1,11 +1,11 @@
 package com.lon.game.logic.generator;
 
 import com.badlogic.gdx.math.Vector2;
-import com.lon.game.logic.world.TileGrid;
 import com.lon.game.logic.angle.Directions;
 import com.lon.game.logic.area.ConeOfView;
 import com.lon.game.logic.area.Sector;
 import com.lon.game.logic.tile.Tile;
+import com.lon.game.logic.world.TileGrid;
 
 import java.util.*;
 
@@ -26,25 +26,24 @@ public class PathBuilder {
         }
     }
 
-    public List<Tile> getCellsForGrowing(PathTree branch) throws PathBuildException {
+    public List<Tile> getCellsForGrowing(PathTree branch) {
         List<Tile> result = new LinkedList<>();
 
         Tile tail = branch.getTail();
 
         List<Float> ableDirections = getAbleDirections(tail, map);
-        if (ableDirections.isEmpty()) {
-            throw new PathBuildException();
+
+        if (!ableDirections.isEmpty()) {
+            Collections.shuffle(ableDirections);
+            Float angle = ableDirections.get(0);
+            Vector2 vec = new Vector2(1, 0);
+            vec = vec.rotateRad(angle).add(tail.getGridPosition());
+
+            int x = Math.round(vec.x);
+            int y = Math.round(vec.y);
+
+            result.add(map.getTile(x, y));
         }
-        Collections.shuffle(ableDirections);
-
-        Float angle = ableDirections.get(0);
-        Vector2 vec = new Vector2(1, 0);
-        vec = vec.rotateRad(angle).add(tail.getGridPosition());
-
-        int x = Math.round(vec.x);
-        int y = Math.round(vec.y);
-
-        result.add(map.getTile(x, y));
 
         return result;
     }

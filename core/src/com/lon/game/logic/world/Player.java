@@ -6,11 +6,12 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import com.lon.game.logic.angle.Angle;
+import com.lon.game.logic.tile.Drawable;
 import com.lon.game.logic.utils.BodyBuilder;
 
 import static com.lon.game.logic.world.PlayerConstant.*;
 
-public class Player {
+public class Player implements Drawable {
     private final Body body;
     private final Texture texture;
 

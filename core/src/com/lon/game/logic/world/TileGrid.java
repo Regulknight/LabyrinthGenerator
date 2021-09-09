@@ -5,6 +5,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 
 import com.lon.game.logic.area.Area;
+import com.lon.game.logic.tile.Drawable;
 import com.lon.game.logic.tile.Tile;
 import com.lon.game.logic.utils.TileBuilder;
 
@@ -13,7 +14,7 @@ import java.util.List;
 
 import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
 
-public class TileGrid {
+public class TileGrid implements Drawable {
     private final World world;
     private final int width;
     private final int height;

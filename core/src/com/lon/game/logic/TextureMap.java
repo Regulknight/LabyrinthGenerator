@@ -23,6 +23,7 @@ public class TextureMap extends HashMap<String, Texture> {
     //TODO add mappingLoading
     private void loadTexturesMapping() {
         put("floor", new Texture("wall.png"));
+        put("floor2", new Texture("wall.png"));
         put("light", new Texture("light.png"));
         put("player", new Texture("player.png"));
         put("wall", new Texture("floor.png"));

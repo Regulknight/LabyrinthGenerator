@@ -7,9 +7,6 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.lon.game.logic.TextureMap;
 import com.lon.game.logic.tile.Tile;
 import com.lon.game.logic.tile.TileType;
-import com.lon.game.logic.world.Cell;
-
-import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
 
 public class SquareTileBuilder implements TileBuilder{
     private TileType type;
@@ -26,6 +23,6 @@ public class SquareTileBuilder implements TileBuilder{
     @Override
     public Tile createTile(World world, Vector2 gridPosition) {
         Body tileBody = BodyBuilder.createSquareTile(world, gridPosition);
-        return new Cell(gridPosition, tileBody, type, texture);
+        return new Tile(gridPosition, tileBody, type);
     }
 }
