@@ -38,17 +38,11 @@ public class PathTree {
     }
 
     public void add(Tile tile) {
-        Random random = new Random();
-        int r = random.nextInt(10);
-
-        if (r < 9)
-            tile.setType(TileType.FLOOR);
-        else tile.setType(TileType.FLOOR2);
+        tile.setType(TileType.FLOOR);
 
         if (tile.getBody() != null) {
             world.destroyBody(tile.getBody());
         }
-
         tile.setBody(null);
 
         this.tileList.add(tile);

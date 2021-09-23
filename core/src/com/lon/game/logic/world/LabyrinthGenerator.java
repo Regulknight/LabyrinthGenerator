@@ -7,7 +7,7 @@ import com.lon.game.logic.generator.PathTree;
 import com.lon.game.logic.tile.Tile;
 import com.lon.game.logic.tile.TileType;
 
-import static com.lon.game.logic.utils.WorldConstants.GENERATION_CYCLE_TIME;
+import static com.lon.game.logic.world.WorldConstants.GENERATION_CYCLE_TIME;
 
 public class LabyrinthGenerator{
     private final PathTree pathThree;

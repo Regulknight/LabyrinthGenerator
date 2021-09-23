@@ -30,6 +30,7 @@ public class HexTextureMap extends HashMap<String, Texture> {
         put("wall", new Texture("hex-wall.png"));
         put("exit", new Texture("hex-exit.png"));
         put("shade", new Texture("shade.png"));
+        put("tyre", new Texture("tyre.png"));
     }
 
     public void dispose() {

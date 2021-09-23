@@ -4,7 +4,7 @@ package com.lon.game.logic.utils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 
-import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
+import static com.lon.game.logic.world.WorldConstants.TILE_SIZE;
 
 public class BodyBuilder {
     public static Body createSquareTile(World world, Vector2 gridPosition) {
@@ -90,6 +90,58 @@ public class BodyBuilder {
         fd.filter.groupIndex = 0;
         pBody.createFixture(fd);
         shape.dispose();
+        return pBody;
+    }
+
+    public static Body createCar(World world, float x, float y, float width, float height) {
+        Body pBody;
+        BodyDef def = new BodyDef();
+
+        def.type = BodyDef.BodyType.DynamicBody;
+
+        def.position.set(x + TILE_SIZE / 2.f, y + TILE_SIZE / 2.f);
+        def.fixedRotation = false;
+
+        pBody = world.createBody(def);
+        pBody.setUserData("wall");
+
+        PolygonShape shape = new PolygonShape();
+        shape.setAsBox(width / 2.f, height / 2.f);
+
+        FixtureDef fd = new FixtureDef();
+        fd.shape = shape;
+        fd.density = 1f;
+        fd.filter.categoryBits = 1;
+        fd.filter.maskBits = 1;
+        fd.filter.groupIndex = 0;
+        pBody.createFixture(fd);
+        shape.dispose();
+        return pBody;
+    }
+
+    public static Body createWheel(World world, float x, float y, float width, float height) {
+        Body pBody;
+        BodyDef def = new BodyDef();
+
+        def.type = BodyDef.BodyType.DynamicBody;
+
+        def.position.set(x + TILE_SIZE / 2.f, y + TILE_SIZE / 2.f);
+        def.fixedRotation = false;
+        pBody = world.createBody(def);
+        pBody.setUserData("wall");
+
+        PolygonShape shape = new PolygonShape();
+        shape.setAsBox(width / 2.f, height / 2.f);
+
+        FixtureDef fd = new FixtureDef();
+        fd.shape = shape;
+        fd.density = 1f;
+        fd.filter.categoryBits = 2;
+        fd.filter.maskBits = 1;
+        fd.filter.groupIndex = 2;
+        pBody.createFixture(fd);
+        shape.dispose();
+
         return pBody;
     }
 

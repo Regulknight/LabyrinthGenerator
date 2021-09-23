@@ -16,7 +16,9 @@ public class HexagonTileBuilder implements TileBuilder{
 
     @Override
     public Tile createTile(World world, Vector2 position) {
-        Body body = BodyBuilder.createHexagonTile(world, position);
+        Body body = null;
+        if (type.equals(TileType.WALL))
+            body = BodyBuilder.createHexagonTile(world, position);
         return new Hexagon(position, body, type);
     }
 }

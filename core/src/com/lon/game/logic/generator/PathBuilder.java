@@ -9,7 +9,7 @@ import com.lon.game.logic.world.TileGrid;
 
 import java.util.*;
 
-import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
+import static com.lon.game.logic.world.WorldConstants.TILE_SIZE;
 
 public class PathBuilder {
     private final float angleOfView = (float) (Math.PI * 0.5);

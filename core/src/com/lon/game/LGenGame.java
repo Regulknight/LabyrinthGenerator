@@ -26,9 +26,11 @@ import com.lon.game.logic.world.LabyrinthGenerator;
 
 import java.util.List;
 
+import static com.lon.game.logic.world.PlayerConstant.PLAYER_SIZE;
+
 public class LGenGame extends ApplicationAdapter {
-    private int gridWidth = 7;
-    private int gridHeight = 7;
+    private int gridWidth = 15;
+    private int gridHeight = 15;
 
     private int score = 0;
 
@@ -44,15 +46,14 @@ public class LGenGame extends ApplicationAdapter {
     double coneRadius = 80;
     Player player;
 
+    float speedMul = 1;
+
     BitmapFont font;
     HexTextureMap hexTextureMap;
     TextureMap textureMap;
     float timer = 0;
 
     RayHandler rayHandler;
-
-    ConeLight forwardLight;
-    ConeLight backwardLight;
 
     Level level;
     LabyrinthGenerator labyrinth;
@@ -62,42 +63,33 @@ public class LGenGame extends ApplicationAdapter {
     @Override
     public void create() {
         world = new World(new Vector2(0, 0), false);
+        World.setVelocityThreshold(10f);
         font = new BitmapFont();
         hexTextureMap = HexTextureMap.getInstance();
         textureMap = TextureMap.getInstance();
-
-        player = new Player(world, hexTextureMap.get("player"));
-
-        createLevel(1, 1);
 
         batch = new SpriteBatch();
         hudBatch = new SpriteBatch();
 
         b2dr = new Box2DDebugRenderer();
 
-        camera = new OrthographicCamera(1920, 1080);
-        camera.zoom = 0.1f;
-        camera.translate(new Vector3(player.getCenter(), 10));
+        camera = new OrthographicCamera(90, 50);
+        camera.zoom = 1f;
+        camera.rotate(90);
 
         rayHandler = new RayHandler(world);
-        rayHandler.setCombinedMatrix(camera.combined.cpy());
-        rayHandler.setAmbientLight(0.225f);
+        rayHandler.setCombinedMatrix(camera);
+        //rayHandler.setAmbientLight(0.025f);
 
-        Color color = new Color(0.3f, 0.3f, 0.25f, 1f);
-
-        forwardLight = new ConeLight(rayHandler, 1000, color, 400, 0, 0, 0, 45);
-        forwardLight.attachToBody(player.getBody(), 5, 0);
-        forwardLight.setIgnoreAttachedBody(true);
-        forwardLight.setSoft(true);
-
-        backwardLight = new ConeLight(rayHandler, 1000, color, 200, 0, 0, 90, 135);
-        backwardLight.attachToBody(player.getBody(), 5, 0, 180);
-        backwardLight.setIgnoreAttachedBody(true);
-        backwardLight.setSoft(false);
+        player = new Player(world, rayHandler, hexTextureMap.get("player"));
+        camera.translate(new Vector3(player.getCenter(), 10));
+        createLevel(1, 1);
     }
 
     @Override
     public void render() {
+        Vector2 playerPosition = player.getCenter();
+        float angle = -90 + player.getAngleDeg();
         world.step(60, 1, 1);
 
         float delta = Gdx.graphics.getDeltaTime();
@@ -106,11 +98,10 @@ public class LGenGame extends ApplicationAdapter {
         Gdx.gl20.glClearColor(.25f, .25f, .25f, 1f);
         Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-
         processUserInput();
         camera.update();
         batch.setProjectionMatrix(camera.combined);
-        rayHandler.setCombinedMatrix(camera.combined);
+        rayHandler.setCombinedMatrix(camera);
 
         if (!isMapOpen) {
             batch.begin();
@@ -118,7 +109,11 @@ public class LGenGame extends ApplicationAdapter {
 
             labyrinth.generationStep(delta);
 
-            camera.position.set(player.getCenter(), 0);
+            camera.position.set(playerPosition, 10);
+
+            //float angle = (float) ((-Math.PI/2 + ((Math.abs(player.getAngleRad() + player.getWheelAngleRad()))/2.f)));
+
+            camera.up.set(new Vector3(0, 1, 0).rotate(angle, 0, 0, 1));
 
             map.render(batch);
             player.render(batch);
@@ -140,6 +135,13 @@ public class LGenGame extends ApplicationAdapter {
 
         font.draw(hudBatch, "Score: " + score, 5, 470);
         font.draw(hudBatch, "Time: " + Math.round(timer * 100) / 100.0, 5, 450);
+//        font.draw(hudBatch, "Speed: " + Math.round(player.getSpeed() * 100) / 100.0, 5, 430);
+//        font.draw(hudBatch, "Speed mul: " + speedMul, 5, 410);
+//        font.draw(hudBatch, "Linear vel" + player.getBody().getLinearVelocity().len(), 5, 390);
+//        font.draw(hudBatch, "Angle vel: " + player.getBody().getAngularVelocity(), 5, 370);
+//        font.draw(hudBatch, "Body Angle" + player.getBody().getAngle(), 5, 350);
+//        font.draw(hudBatch, "Wheels Angle" + player.getWheelAngleRad(), 5, 330);
+//        font.draw(hudBatch, "Angles difference" + (player.getAngleRad() - player.getWheelAngleRad()), 5, 310);
 
         hudBatch.end();
     }
@@ -157,13 +159,13 @@ public class LGenGame extends ApplicationAdapter {
     private void processUserInput() {
         float delta = Gdx.graphics.getDeltaTime();
 
-        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            float playerDirection = Angle.getAngle(Gdx.input.getX() - camera.viewportWidth/2.f, camera.viewportHeight/2.f - Gdx.input.getY());
-            System.out.println(playerDirection);
-            player.setAngle(playerDirection);
-
-            player.move(delta);
-        }
+//        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+//            float playerDirection = Angle.getAngle(Gdx.input.getX() - camera.viewportWidth/2.f, camera.viewportHeight/2.f - Gdx.input.getY());
+//            System.out.println(playerDirection);
+//            player.setAngle(playerDirection);
+//
+//            player.move(delta);
+//        }
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             player.rotate(delta);
         }
@@ -183,13 +185,10 @@ public class LGenGame extends ApplicationAdapter {
             viewAngle -= Math.PI / 16;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-            camera.zoom += 0.01;
+            speedMul += 0.1;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-            camera.zoom -= 0.01;
-            if (camera.zoom <= 0.1) {
-                camera.zoom = 0.1f;
-            }
+            speedMul -= 0.1;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
             rotateAngle += Math.PI / 32;
@@ -198,13 +197,15 @@ public class LGenGame extends ApplicationAdapter {
             rotateAngle -= Math.PI / 32;
         }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-
+        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+            System.out.println(player.getBody().getLinearVelocity().angleRad() + " " + player.getBody().getAngle());
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
             isMapOpen = !isMapOpen;
         }
+
+        player.update(2, delta);
     }
 
     private void createLevel(int startX, int startY) {
@@ -219,7 +220,7 @@ public class LGenGame extends ApplicationAdapter {
         map = level.getMap();
         labyrinth = new LabyrinthGenerator(map, map.getTile(startX, startY), world);
 
-        Tile start = map.getTile(1, 1);
+        Tile start = map.getTile(startX, startY);
         player.setTransform(new Vector2(start.getCenterX(), start.getCenterY()));
     }
 

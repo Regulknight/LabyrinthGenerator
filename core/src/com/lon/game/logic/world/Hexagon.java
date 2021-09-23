@@ -7,7 +7,7 @@ import com.lon.game.logic.HexTextureMap;
 import com.lon.game.logic.tile.Tile;
 import com.lon.game.logic.tile.TileType;
 
-import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
+import static com.lon.game.logic.world.WorldConstants.TILE_SIZE;
 
 public class Hexagon extends Tile {
     private final float h = (float) Math.pow(TILE_SIZE/2.f * TILE_SIZE/2.f - TILE_SIZE/4.f * TILE_SIZE/4.f, 1/2.f);

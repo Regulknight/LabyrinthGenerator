@@ -12,8 +12,6 @@ import com.lon.game.logic.utils.TileBuilder;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
-
 public class TileGrid implements Drawable {
     private final World world;
     private final int width;

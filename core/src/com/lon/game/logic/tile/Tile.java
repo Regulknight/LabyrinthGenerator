@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.lon.game.logic.TextureMap;
 
-import static com.lon.game.logic.utils.WorldConstants.TILE_SIZE;
+import static com.lon.game.logic.world.WorldConstants.TILE_SIZE;
 
 public class Tile implements Drawable {
     private final Vector2 gridPosition;
