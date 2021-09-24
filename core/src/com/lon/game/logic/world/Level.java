@@ -12,7 +12,7 @@ import java.util.List;
 public class Level {
     private World world;
     private TileGrid map;
-    private List<Body> levelBorders = new LinkedList<>();
+    private final List<Body> levelBorders = new LinkedList<>();
 
     public Level(int gridWidth, int gridHeight, World world) {
         this.world = world;

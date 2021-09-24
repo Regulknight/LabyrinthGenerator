@@ -1,4 +1,4 @@
-package com.lon.game.logic.world;
+package com.lon.game.logic.car;
 
 import box2dLight.ConeLight;
 import box2dLight.RayHandler;
@@ -6,43 +6,42 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.JointDef;
+import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
-import com.badlogic.gdx.physics.box2d.joints.WeldJoint;
 import com.badlogic.gdx.physics.box2d.joints.WeldJointDef;
-import com.badlogic.gdx.physics.box2d.joints.WheelJointDef;
-import com.lon.game.logic.HexTextureMap;
+import com.lon.game.logic.TextureMap;
 import com.lon.game.logic.angle.Angle;
 import com.lon.game.logic.tile.Drawable;
 import com.lon.game.logic.utils.BodyBuilder;
 
-import static com.lon.game.logic.world.PlayerConstant.*;
+import static com.lon.game.logic.car.CarConstants.*;
 
-public class Player implements Drawable {
+public class Car implements Drawable {
     private final Body body;
 
     private final Body frontRightWheel;
     private final Body frontLeftWheel;
     private final Body backRightWheel;
     private final Body backLeftWheel;
+    private final Texture wheelTexture;
 
     private final Texture texture;
 
-    private float speed = 0;
+    public Car(World world, RayHandler rayHandler, TextureMap textureMap) {
+        this.body = BodyBuilder.createCar(world, 0, 0);
 
-    public Player(World world, RayHandler rayHandler, Texture texture) {
-        this.body = BodyBuilder.createCar(world, 0, 0, 2 * PLAYER_SIZE - 0.15f, PLAYER_SIZE - 0.3f);
-        MassData massData = this.body.getMassData();
-        massData.mass *= 100;
-        massData.I *= 100;
+        float xWheelPosition = 0.55f * CAR_SIZE;
+        float yWheelPosition = 0.35f * CAR_SIZE;
+        this.frontRightWheel = createWheel(world, xWheelPosition, -yWheelPosition, true);
+        this.frontLeftWheel = createWheel(world, xWheelPosition, yWheelPosition, true);
+        this.backRightWheel = createWheel(world, -xWheelPosition, -yWheelPosition, false);
+        this.backLeftWheel = createWheel(world, -xWheelPosition, yWheelPosition, false);
 
-        frontRightWheel = createWheel(world, 11/20f, -7/20f, true);
-        frontLeftWheel = createWheel(world, 11/20f, 7/20f, true);
+        this.wheelTexture = textureMap.get("tyre");
 
-        backRightWheel = createWheel(world, -11/20f, -7/20f, false);
-        backLeftWheel = createWheel(world, -11/20f, 7/20f, false);
-
-        this.texture = texture;
+        this.texture = textureMap.get("player");
         this.body.setActive(true);
         this.body.setAwake(true);
         this.body.setLinearDamping(0.0025f);
@@ -52,7 +51,7 @@ public class Player implements Drawable {
     }
 
     private Body createWheel(World world, float x, float y, boolean isRotate) {
-        Body wheel = BodyBuilder.createWheel(world, x, y, 0.35f, 0.12f);
+        Body wheel = BodyBuilder.createWheel(world, x, y);
 
         if (isRotate) {
             RevoluteJointDef joint = new RevoluteJointDef();
@@ -133,16 +132,18 @@ public class Player implements Drawable {
     }
 
     public void render(Batch batch) {
-        float halfSize = PLAYER_SIZE/2.f;
+        float halfSize = CAR_SIZE/2.f;
 
-        HexTextureMap textureMap = HexTextureMap.getInstance();
+        renderWheel(frontLeftWheel, batch);
+        renderWheel(frontRightWheel, batch);
+        renderWheel(backLeftWheel, batch);
+        renderWheel(backRightWheel, batch);
 
-        batch.draw(textureMap.get("tyre"), frontLeftWheel.getPosition().x - 3.5f/20f, frontLeftWheel.getPosition().y - 1.5f/20f, 3.5f/20f, 1.5f/20f, 7/20f, 3/20f, 1, 1, Angle.convertInDeg(frontLeftWheel.getAngle()), 1, 1, 500, 100, false, false);
-        batch.draw(textureMap.get("tyre"), frontRightWheel.getPosition().x - 3.5f/20f, frontRightWheel.getPosition().y - 1.5f/20f, 3.5f/20f, 1.5f/20f, 7/20f, 3/20f, 1, 1, Angle.convertInDeg(frontRightWheel.getAngle()), 1, 1, 500, 100, false, false);
-        batch.draw(textureMap.get("tyre"), backLeftWheel.getPosition().x - 3.5f/20f, backLeftWheel.getPosition().y - 1.5f/20f, 3.5f/20f, 1.5f/20f, 7/20f, 3/20f, 1, 1, Angle.convertInDeg(backLeftWheel.getAngle()), 1, 1, 500, 100, false, false);
-        batch.draw(textureMap.get("tyre"), backRightWheel.getPosition().x - 3.5f/20f, backRightWheel.getPosition().y - 1.5f/20f, 3.5f/20f, 1.5f/20f, 7/20f, 3/20f, 1, 1, Angle.convertInDeg(backRightWheel.getAngle()), 1, 1, 500, 100, false, false);
+        batch.draw(texture, getX() - 2 * halfSize, getY() - halfSize, halfSize * 2, halfSize, CAR_SIZE * 2, CAR_SIZE, 1, 1, getAngleDeg(), 1, 1, 860, 478, false, false);
+    }
 
-        batch.draw(texture, getX() - 2 * halfSize, getY() - halfSize, halfSize * 2, halfSize, PLAYER_SIZE * 2, PLAYER_SIZE, 1, 1, getAngleDeg(), 1, 1, 860, 478, false, false);
+    private void renderWheel(Body wheel, Batch batch) {
+        batch.draw(wheelTexture, wheel.getPosition().x - HALF_WHEEL_WIDTH, wheel.getPosition().y - HALF_WHEEL_HEIGHT, HALF_WHEEL_WIDTH, HALF_WHEEL_HEIGHT, 2 * HALF_WHEEL_WIDTH, 2 * HALF_WHEEL_HEIGHT, 1, 1, Angle.convertInDeg(wheel.getAngle()), 1, 1, 500, 100, false, false);
     }
 
     public void move(float delta) {
@@ -152,30 +153,30 @@ public class Player implements Drawable {
             body.applyTorque(angle * delta * body.getLinearVelocity().len() * 10, true);
         }
 
-        body.applyForceToCenter(new Vector2(0.0005f * delta, 0).rotateRad(getAngleRad()), true);
+        normalizeWheels();
+
+        body.applyForceToCenter(new Vector2(CAR_FORCE * delta, 0).rotateRad(getAngleRad()), true);
     }
 
     public void rotate(float delta) {
-        frontRightWheel.applyTorque(PLAYER_ANGLE_SPEED * delta * 0.25f, true);
-        frontLeftWheel.applyTorque(PLAYER_ANGLE_SPEED * delta * 0.25f, true);
+        frontRightWheel.applyTorque(CAR_ANGLE_SPEED * delta, true);
+        frontLeftWheel.applyTorque(CAR_ANGLE_SPEED * delta, true);
 
-        float angle = frontRightWheel.getAngle() - body.getAngle();
-
-        if (angle > Math.PI/4) {
-            frontRightWheel.setTransform(frontRightWheel.getPosition(), body.getAngle() + (float) (Math.PI / 4.f));
-            frontLeftWheel.setTransform(frontLeftWheel.getPosition(), body.getAngle() + (float) (Math.PI / 4.f));
-        }
-
-        if (angle < -Math.PI/4) {
-            frontRightWheel.setTransform(frontRightWheel.getPosition(), body.getAngle() - (float) (Math.PI / 4.f));
-            frontLeftWheel.setTransform(frontLeftWheel.getPosition(), body.getAngle() - (float) (Math.PI / 4.f));
-        }
+        normalizeWheels();
     }
 
-    public void update(float speedMul, float delta) {
+    private void normalizeWheels() {
         float angle = frontRightWheel.getAngle() - body.getAngle();
 
+        if (angle > WHEEL_MAX_ANGLE) {
+            frontRightWheel.setTransform(frontRightWheel.getPosition(), body.getAngle() + WHEEL_MAX_ANGLE);
+            frontLeftWheel.setTransform(frontLeftWheel.getPosition(), body.getAngle() + WHEEL_MAX_ANGLE);
+        }
 
+        if (angle < -WHEEL_MAX_ANGLE) {
+            frontRightWheel.setTransform(frontRightWheel.getPosition(), body.getAngle() - WHEEL_MAX_ANGLE);
+            frontLeftWheel.setTransform(frontLeftWheel.getPosition(), body.getAngle() - WHEEL_MAX_ANGLE);
+        }
     }
 
     public void setTransform(Vector2 position) {
@@ -186,9 +187,5 @@ public class Player implements Drawable {
         backLeftWheel.setTransform(position, getAngleRad());
         backRightWheel.setTransform(position, getAngleRad());
 
-    }
-
-    public float getSpeed() {
-        return speed;
     }
 }

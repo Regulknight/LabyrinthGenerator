@@ -29,6 +29,7 @@ public class TextureMap extends HashMap<String, Texture> {
         put("wall", new Texture("floor.png"));
         put("exit", new Texture("light.png"));
         put("shade", new Texture("shade.png"));
+        put("tyre", new Texture("tyre.png"));
     }
 
     public void dispose() {
