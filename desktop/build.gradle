@@ -32,6 +32,11 @@ task dist(type: Jar) {
     with jar
 }
 
+dependencies {
+
+
+}
+
 
 dist.dependsOn classes
 

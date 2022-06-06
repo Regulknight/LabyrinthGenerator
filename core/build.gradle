@@ -1,5 +1,7 @@
 dependencies {
     implementation 'junit:junit:4.13.2'
+    implementation 'com.badlogicgames.gdx:gdx-backend-headless:1.11.0'
+    implementation 'org.mockito:mockito-core:4.5.1'
 }
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
