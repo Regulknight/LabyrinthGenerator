@@ -16,12 +16,12 @@ import com.lon.game.tile.Hexagon;
 import com.lon.game.tile.TileType;
 import com.lon.game.utils.AverageCounter;
 import com.lon.game.utils.AverageCounterMap;
-import com.lon.game.utils.HexagonTileBuilder;
-import com.lon.game.utils.SquareTileBuilder;
+import com.lon.game.utils.HexagonTileFactory;
+import com.lon.game.utils.SquareTileFactory;
 import com.lon.game.world.GridType;
-import com.lon.game.world.Level;
 import com.lon.game.world.TileGrid;
 import com.lon.game.world.LabyrinthGenerator;
+import com.lon.game.world.TileGridBuilder;
 
 import java.util.concurrent.TimeUnit;
 
@@ -31,12 +31,13 @@ import static com.lon.game.world.WorldConstants.TILE_SIZE;
 public class LGenGame extends ApplicationAdapter {
     public static final String TOTAL_TIMER = "total_timer";
     public static final String LEVEL_TIMER = "level_timer";
-    public static int GRID_WIDTH = 10;
+    public static int GRID_WIDTH = 20;
     public static int GRID_HEIGHT = 10;
     private static int GRID_WIDTH_INC = 2;
     private static int GRID_HEIGHT_INC = 2;
-    private static int LEVEL_CHANGE_SLEEP_TIMEOUT_MS= 1500;
-    private static GridType gridType = GridType.SQUARE;
+    private static int LEVEL_CHANGE_SLEEP_TIMEOUT_MS= 3000;
+    private static GridType gridType = GridType.HEX;
+    private static TileType gridTileType = TileType.WALL;
 
     SpriteBatch batch;
     SpriteBatch hudBatch;
@@ -51,7 +52,6 @@ public class LGenGame extends ApplicationAdapter {
 
     RayHandler rayHandler;
 
-    Level level;
     LabyrinthGenerator labyrinth;
 
     boolean generatorFlag = false;
@@ -60,6 +60,7 @@ public class LGenGame extends ApplicationAdapter {
 
     BitmapFont font;
 
+    TileGridBuilder mapBuilder;
 
     @Override
     public void create() {
@@ -67,7 +68,9 @@ public class LGenGame extends ApplicationAdapter {
         timeInfo.put(LEVEL_TIMER, new AverageCounter());
 
         world = new World(new Vector2(0, 0), false);
-        World.setVelocityThreshold(10f);
+        mapBuilder = new TileGridBuilder(new HexagonTileFactory(world, gridTileType), GRID_WIDTH, GRID_HEIGHT);
+        mapBuilder.setHeightInc(GRID_HEIGHT_INC);
+        mapBuilder.setWidthInc(GRID_WIDTH_INC);
 
         font = new BitmapFont();
 
@@ -81,14 +84,11 @@ public class LGenGame extends ApplicationAdapter {
 
         camera = new OrthographicCamera(90, 50);
 
-        camera.rotate(90);
-
         rayHandler = new RayHandler(world);
         rayHandler.setCombinedMatrix(camera);
         rayHandler.setAmbientLight(1f);
 
         createLevel(GRID_WIDTH / 2, GRID_HEIGHT / 2);
-        recalibrateCamera(camera);
     }
 
     @Override
@@ -122,9 +122,7 @@ public class LGenGame extends ApplicationAdapter {
                     throw new RuntimeException(e);
                 }
                 timeInfo.reset(LEVEL_TIMER);
-                createLevel(GRID_WIDTH / 2, GRID_HEIGHT / 2);
-                recalibrateCamera(camera);
-                camera.update();
+                createLevel(mapBuilder.getWidth() / 2, mapBuilder.getWidth() / 2);
             }
         }
 
@@ -144,7 +142,7 @@ public class LGenGame extends ApplicationAdapter {
         int labyrinthCellSize = 0;
 
         font.draw(hudBatch, "total time: " + Math.round(timer * 100) / 100.0, 5, 450);
-        font.draw(hudBatch, String.format("grid size: (%d, %d)", GRID_HEIGHT, GRID_WIDTH), 5, 425);
+        font.draw(hudBatch, String.format("grid size: (%d, %d)", mapBuilder.getHeight(), mapBuilder.getWidth()), 5, 425);
         font.draw(hudBatch, String.format("branch count: %d", branchCount), 5, 400);
         font.draw(hudBatch, String.format("cell count: %d", labyrinthCellSize), 5, 375);
         font.draw(hudBatch, String.format("steps total: %d", timeInfo.getCounter(TOTAL_TIMER)), 5, 350);
@@ -174,52 +172,46 @@ public class LGenGame extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             camera.zoom -= 0.1;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
             camera.position.add(1, 0, 0);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
             camera.position.add(0, 1, 0);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             camera.position.add(-1, 0, 0);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
             camera.position.add(0, -1, 0);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             generatorFlag = true;
         }
 
     }
 
     private void createLevel(int startX, int startY) {
-        if (level != null) {
-            level.destroy();
-
-            GRID_WIDTH += GRID_WIDTH_INC;
-            GRID_HEIGHT += GRID_HEIGHT_INC;
+        if (map != null) {
+            map.destroy();
         }
 
-        if (GridType.HEX.equals(gridType)) {
-            level = new Level(GRID_WIDTH, GRID_HEIGHT, new HexagonTileBuilder(world, TileType.WALL));
-        } else {
-            level = new Level(GRID_WIDTH, GRID_HEIGHT, new SquareTileBuilder(world, TileType.WALL));
-        }
+        map = mapBuilder.build();
 
-        map = level.getMap();
         labyrinth = new LabyrinthGenerator(map, map.getTile(startX, startY));
+
+        recalibrateCamera();
     }
 
 
-    private void recalibrateCamera(OrthographicCamera camera) {
-
+    private void recalibrateCamera() {
         if (GridType.HEX.equals(gridType)) {
-            camera.position.set(GRID_WIDTH * TILE_SIZE / 2.f - GRID_WIDTH, GRID_HEIGHT * Hexagon.h, 0);
-            camera.zoom = (float) (0.19 * (Math.max(GRID_WIDTH, GRID_HEIGHT)));
+            camera.position.set(mapBuilder.getWidth() * TILE_SIZE / 2.f - mapBuilder.getWidth(), mapBuilder.getHeight() * Hexagon.h, 0);
+            camera.zoom = (float) (0.21 * (Math.max(mapBuilder.getWidth(), mapBuilder.getHeight())));
         } else {
-            camera.position.set(GRID_WIDTH * TILE_SIZE / 2.f, GRID_HEIGHT * TILE_SIZE / 2.f, 0);
-            camera.zoom = (float) (0.21 * (Math.max(GRID_WIDTH, GRID_HEIGHT)));
+            camera.position.set(mapBuilder.getWidth() * TILE_SIZE / 2.f, mapBuilder.getHeight() * TILE_SIZE / 2.f, 0);
+            camera.zoom = (float) (0.21 * (Math.max(mapBuilder.getWidth(), mapBuilder.getHeight())));
         }
 
     }
+
 }

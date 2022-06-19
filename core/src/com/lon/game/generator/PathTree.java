@@ -11,7 +11,7 @@ public class PathTree {
     private final List<PathTree> activeChildList = new LinkedList<>();
     private final List<PathTree> closedChildList = new LinkedList<>();
 
-    private PathBuilder builder;
+    private final PathBuilder builder;
 
     public PathTree(Tile root, PathBuilder builder, int rootPosition) {
         this.pathLength = rootPosition;
@@ -42,7 +42,7 @@ public class PathTree {
     }
 
     public boolean grow() {
-        return growCurrentTree() || growActiveChildren() | growNewChildren();
+        return growCurrentTree() | growActiveChildren() || growNewChildren();
     }
 
     private boolean growActiveChildren() {
