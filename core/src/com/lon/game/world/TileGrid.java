@@ -6,25 +6,23 @@ import com.badlogic.gdx.math.Vector2;
 import com.lon.game.area.Area;
 import com.lon.game.tile.Drawable;
 import com.lon.game.tile.Tile;
-import com.lon.game.utils.TileBuilder;
+import com.lon.game.utils.TileFactory;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.lon.game.LGenGame.GRID_WIDTH;
-
 public class TileGrid implements Drawable {
     private final int width;
     private final int height;
-    private final TileBuilder tileBuilder;
+    private final TileFactory tileFactory;
 
-    private final List<List<Tile>> grid;
+    private List<List<Tile>> grid;
 
-    public TileGrid(int width, int height, TileBuilder tileBuilder) {
+    public TileGrid(int width, int height, TileFactory tileFactory) {
         this.width = width;
         this.height = height;
 
-        this.tileBuilder = tileBuilder;
+        this.tileFactory = tileFactory;
 
         this.grid = initGrid();
 
@@ -36,7 +34,7 @@ public class TileGrid implements Drawable {
         for (int i = 0; i < height; i++) {
             List<Tile> row = new LinkedList<>();
             for (int j = 0; j < width; j++) {
-                row.add(tileBuilder.createTile(new Vector2(j, i)));
+                row.add(tileFactory.createTile(new Vector2(j, i)));
             }
             map.add(row);
         }
@@ -75,5 +73,15 @@ public class TileGrid implements Drawable {
                 tile.render(batch);
             }
         }
+    }
+
+    public void destroy() {
+        for (List<Tile> row: grid) {
+            for (Tile tile : row) {
+                tile.destroyBody();
+            }
+        }
+
+        this.grid = null;
     }
 }

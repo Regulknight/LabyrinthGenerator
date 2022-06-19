@@ -6,7 +6,7 @@ import com.badlogic.gdx.physics.box2d.*;
 
 import static com.lon.game.world.WorldConstants.TILE_SIZE;
 
-public class BodyBuilder {
+public class BodyFactory {
     public static Body createSquareTile(World world, Vector2 gridPosition) {
         return createRectangle(world, gridPosition.x * TILE_SIZE, gridPosition.y * TILE_SIZE, TILE_SIZE, TILE_SIZE, true, true);
     }

@@ -13,10 +13,26 @@ public class LabyrinthGenerator{
     private boolean growingFlag = true;
 
     public LabyrinthGenerator(TileGrid grid, Tile startTile) {
-        this.pathThree = new PathTree(startTile, new PathBuilder(grid), 0);
+        this.pathThree = new PathTree(startTile, new NegativeMemoryPathBuilder(grid), 0);
     }
 
     public boolean generationStep() {
+        boolean pathThreeGenerationStatus = pathTreeGenerationStep();
+
+        if (pathThreeGenerationStatus) {
+            return pathThreeGenerationStatus;
+        }
+
+        boolean circleGenerationStatus = circleGenerationStep();
+
+        if (circleGenerationStatus) {
+            return circleGenerationStatus;
+        }
+
+        return false;
+    }
+
+    public boolean pathTreeGenerationStep() {
         boolean result = false;
 
         if (growingFlag) {
@@ -29,6 +45,10 @@ public class LabyrinthGenerator{
         }
 
         return result;
+    }
+
+    private boolean circleGenerationStep() {
+        return false;
     }
 
     public PathTree getPathThree() {

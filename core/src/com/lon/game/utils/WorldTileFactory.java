@@ -6,11 +6,11 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.lon.game.tile.Tile;
 import com.lon.game.tile.TileType;
 
-public abstract class WorldTileBuilder implements TileBuilder{
+public abstract class WorldTileFactory implements TileFactory {
     protected World world;
     protected TileType type;
 
-    public WorldTileBuilder(World world, TileType type) {
+    public WorldTileFactory(World world, TileType type) {
         this.world = world;
         this.type = type;
     }

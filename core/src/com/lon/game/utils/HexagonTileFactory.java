@@ -5,20 +5,21 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import com.lon.game.tile.Tile;
 import com.lon.game.tile.TileType;
+import com.lon.game.tile.Hexagon;
 
-public class SquareTileBuilder extends WorldTileBuilder {
+public class HexagonTileFactory extends WorldTileFactory {
 
-    public SquareTileBuilder(World world, TileType type) {
+    public HexagonTileFactory(World world, TileType type) {
         super(world, type);
     }
 
     @Override
     protected Tile createTile(World world, Vector2 position, Body tileBody, TileType type) {
-        return new Tile(world, position, tileBody, type);
+        return new Hexagon(world, position, tileBody, type);
     }
 
     @Override
-    protected Body createTileBody(Vector2 gridPosition) {
-        return BodyBuilder.createSquareTile(world, gridPosition);
+    protected Body createTileBody(Vector2 position) {
+        return BodyFactory.createHexagonTile(world, position);
     }
 }
