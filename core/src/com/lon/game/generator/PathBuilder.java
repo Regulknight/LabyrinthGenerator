@@ -4,6 +4,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.lon.game.angle.Directions;
 import com.lon.game.area.ConeOfView;
 import com.lon.game.area.Sector;
+import com.lon.game.generator.direction.DirectionChooser;
+import com.lon.game.generator.direction.RotateDirectionChooser;
 import com.lon.game.tile.Tile;
 import com.lon.game.world.TileGrid;
 
@@ -16,6 +18,8 @@ public class PathBuilder {
     private final double coneRadius = TILE_SIZE * 2.5;
 
     private final Map<Float, ConeOfView> directionConesOfView = new HashMap<>();
+
+    private final DirectionChooser chooser = new RotateDirectionChooser();
     private final TileGrid map;
 
     public PathBuilder(TileGrid map) {
@@ -30,19 +34,10 @@ public class PathBuilder {
         List<Tile> result = new LinkedList<>();
 
         Tile tail = branch.getTail();
-
         List<Float> ableDirections = getAbleDirections(tail, map);
 
         if (!ableDirections.isEmpty()) {
-            Collections.shuffle(ableDirections);
-            Float angle = ableDirections.get(0);
-            Vector2 vec = new Vector2(1, 0);
-            vec = vec.rotateRad(angle).add(tail.getGridPosition());
-
-            int x = Math.round(vec.x);
-            int y = Math.round(vec.y);
-
-            result.add(map.getTile(x, y));
+            result.add(getNextCell(tail, chooser.chooseDirection(ableDirections)));
         }
 
         return result;
@@ -65,5 +60,13 @@ public class PathBuilder {
         return !getAbleDirections(tile, map).isEmpty();
     }
 
+    private Tile getNextCell(Tile tail, float direction) {
+        Vector2 vec = new Vector2(1, 0);
+        vec = vec.rotateRad(direction).add(tail.getGridPosition());
 
+        int x = Math.round(vec.x);
+        int y = Math.round(vec.y);
+
+        return map.getTile(x, y);
+    }
 }

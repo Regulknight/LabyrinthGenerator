@@ -42,7 +42,7 @@ public class PathTree {
     }
 
     public boolean grow() {
-        return growCurrentTree() | growActiveChildren() || growNewChildren();
+        return growCurrentTree() | growActiveChildren() | growNewChildren();
     }
 
     private boolean growActiveChildren() {
