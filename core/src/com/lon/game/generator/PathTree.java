@@ -25,16 +25,8 @@ public abstract class PathTree {
         this.builder = builder;
     }
 
-    public Tile getRoot() {
-        return this.tileList.get(0);
-    }
-
     public Tile getTail() {
         return this.tileList.get(tileList.size() - 1);
-    }
-
-    public List<Tile> getTileList() {
-        return tileList;
     }
 
     public void add(Tile tile) {
@@ -119,21 +111,6 @@ public abstract class PathTree {
 
         return result;
     }
-
-    public int getSize() {
-        int result = 0;
-
-        for (PathTree tree : activeChildList) {
-            result += tree.getSize();
-        }
-
-        return tileList.size() + result;
-    }
-
-    public int getPathLength() {
-        return this.pathLength;
-    }
-
 
     public Tile generateExit() {
         List<Tile> candidates = new LinkedList<>();

@@ -13,16 +13,13 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.lon.game.generator.NegativeMemoryPathBuilder;
-import com.lon.game.generator.PathBuilder;
-import com.lon.game.generator.direction.DirectionChooser;
 import com.lon.game.generator.direction.RandomDirectionChooser;
-import com.lon.game.generator.direction.RotateDirectionChooser;
 import com.lon.game.tile.Hexagon;
 import com.lon.game.tile.TileType;
 import com.lon.game.utils.*;
 import com.lon.game.world.GridType;
-import com.lon.game.world.TileGrid;
 import com.lon.game.world.LabyrinthGenerator;
+import com.lon.game.world.TileGrid;
 import com.lon.game.world.TileGridBuilder;
 
 import java.util.concurrent.TimeUnit;
@@ -35,11 +32,11 @@ public class LGenGame extends ApplicationAdapter {
     public static final String LEVEL_TIMER = "level_timer";
     public static int GRID_WIDTH = 20;
     public static int GRID_HEIGHT = 10;
-    private static int GRID_WIDTH_INC = 2;
-    private static int GRID_HEIGHT_INC = 2;
-    private static int LEVEL_CHANGE_SLEEP_TIMEOUT_MS= 3000;
-    private static GridType gridType = GridType.SQUARE;
-    private static TileType gridTileType = TileType.WALL;
+    private static final int GRID_WIDTH_INC = 2;
+    private static final int GRID_HEIGHT_INC = 2;
+    private static final int LEVEL_CHANGE_SLEEP_TIMEOUT_MS= 3000;
+    private static final GridType gridType = GridType.SQUARE;
+    private static final TileType gridTileType = TileType.WALL;
 
     SpriteBatch batch;
     SpriteBatch hudBatch;
@@ -179,8 +176,6 @@ public class LGenGame extends ApplicationAdapter {
     }
 
     private void processUserInput() {
-        float delta = Gdx.graphics.getDeltaTime();
-
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
             camera.zoom += 0.1;
         }
@@ -202,7 +197,6 @@ public class LGenGame extends ApplicationAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             generatorFlag = true;
         }
-
     }
 
     private void createLevel(int startX, int startY) {

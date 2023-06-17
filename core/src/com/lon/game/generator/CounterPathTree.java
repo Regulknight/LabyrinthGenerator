@@ -5,16 +5,15 @@ import com.lon.game.world.TileGrid;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 public class CounterPathTree extends PathTree{
 	private int growCounter = 0;
-	private int mainBranchCounter;
-	private int newBranchCounter;
-	private int activeGrowCounter;
+	private final int mainBranchCounter;
+	private final int newBranchCounter;
+	private final int activeGrowCounter;
 
-	private List<Boolean> growStatusHistory;
-	private int historySize;
+	private final List<Boolean> growStatusHistory;
+	private final int historySize;
 	public CounterPathTree(
 			Tile root,
 			PathBuilder builder,
