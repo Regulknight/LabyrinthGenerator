@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PathTree {
+public abstract class PathTree {
     private final int pathLength;
     private final List<Tile> tileList = new LinkedList<>();
     private final List<PathTree> activeChildList = new LinkedList<>();
@@ -45,11 +45,11 @@ public class PathTree {
         this.tileList.add(tile);
     }
 
-    public boolean grow(TileGrid map) {
-        return growCurrentTree(map) | growActiveChildren(map) | growNewChildren(map);
-    }
+    public abstract boolean grow(TileGrid map);
 
-    private boolean growActiveChildren(TileGrid map) {
+    protected abstract PathTree growNewChild(Tile root, PathBuilder builder, int remoteness);
+
+    protected boolean growActiveChildren(TileGrid map) {
         boolean result = false;
 
         for (PathTree child : activeChildList) {
@@ -65,7 +65,7 @@ public class PathTree {
         return result;
     }
 
-    private boolean growCurrentTree(TileGrid map) {
+    protected boolean growCurrentTree(TileGrid map) {
         boolean result = false;
         if (builder.isAbleToBuild(map, getTail())) {
             List<Tile> cellsForGrowing = builder.getCellsForGrowing(map, this);
@@ -81,7 +81,7 @@ public class PathTree {
         return result;
     }
 
-    private boolean growNewChildren(TileGrid map) {
+    protected boolean growNewChildren(TileGrid map) {
         List<Tile> tileList = getTileForBranching(map);
 
         if (!tileList.isEmpty()) {
@@ -91,7 +91,7 @@ public class PathTree {
 
             if (root == null) return false;
 
-            activeChildList.add(new PathTree(root, builder, root.getRemoteness()));
+            activeChildList.add(growNewChild(root, builder, root.getRemoteness()));
 
             return true;
         }

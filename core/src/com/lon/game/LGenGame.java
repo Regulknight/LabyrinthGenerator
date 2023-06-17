@@ -38,7 +38,7 @@ public class LGenGame extends ApplicationAdapter {
     private static int GRID_WIDTH_INC = 2;
     private static int GRID_HEIGHT_INC = 2;
     private static int LEVEL_CHANGE_SLEEP_TIMEOUT_MS= 3000;
-    private static GridType gridType = GridType.HEX;
+    private static GridType gridType = GridType.SQUARE;
     private static TileType gridTileType = TileType.WALL;
 
     SpriteBatch batch;
@@ -72,17 +72,7 @@ public class LGenGame extends ApplicationAdapter {
         timeInfo.put(LEVEL_TIMER, new AverageCounter());
 
         world = new World(new Vector2(0, 0), false);
-
-        WorldTileFactory factory;
-
-        if (gridType == GridType.SQUARE)
-            factory = new SquareTileFactory(world, gridTileType);
-        else
-            factory = new HexagonTileFactory(world, gridTileType);
-
-        mapBuilder = new TileGridBuilder(factory, GRID_WIDTH, GRID_HEIGHT);
-        mapBuilder.setHeightInc(GRID_HEIGHT_INC);
-        mapBuilder.setWidthInc(GRID_WIDTH_INC);
+        createMapBuilder();
 
         font = new BitmapFont();
 
@@ -101,6 +91,19 @@ public class LGenGame extends ApplicationAdapter {
         rayHandler.setAmbientLight(1f);
 
         createLevel(GRID_WIDTH / 2, GRID_HEIGHT / 2);
+    }
+
+    private void createMapBuilder() {
+        WorldTileFactory factory;
+
+        if (gridType == GridType.SQUARE)
+            factory = new SquareTileFactory(world, gridTileType);
+        else
+            factory = new HexagonTileFactory(world, gridTileType);
+
+        mapBuilder = new TileGridBuilder(factory, GRID_WIDTH, GRID_HEIGHT);
+        mapBuilder.setHeightInc(GRID_HEIGHT_INC);
+        mapBuilder.setWidthInc(GRID_WIDTH_INC);
     }
 
     @Override
