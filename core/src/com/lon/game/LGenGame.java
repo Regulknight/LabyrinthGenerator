@@ -12,6 +12,11 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.lon.game.generator.NegativeMemoryPathBuilder;
+import com.lon.game.generator.PathBuilder;
+import com.lon.game.generator.direction.DirectionChooser;
+import com.lon.game.generator.direction.RandomDirectionChooser;
+import com.lon.game.generator.direction.RotateDirectionChooser;
 import com.lon.game.tile.Hexagon;
 import com.lon.game.tile.TileType;
 import com.lon.game.utils.*;
@@ -58,6 +63,8 @@ public class LGenGame extends ApplicationAdapter {
     BitmapFont font;
 
     TileGridBuilder mapBuilder;
+
+    NegativeMemoryPathBuilder builder = new NegativeMemoryPathBuilder(new RandomDirectionChooser());
 
     @Override
     public void create() {
@@ -115,7 +122,7 @@ public class LGenGame extends ApplicationAdapter {
         ScreenUtils.clear(0, 0, 0, 1);
         if (generatorFlag) {
             long startTime = System.nanoTime();
-            boolean isGen = labyrinth.generationStep();
+            boolean isGen = labyrinth.generationStep(map);
             long deltaTime = System.nanoTime() - startTime;
 
             timeInfo.update(deltaTime);
@@ -202,7 +209,8 @@ public class LGenGame extends ApplicationAdapter {
 
         map = mapBuilder.build();
 
-        labyrinth = new LabyrinthGenerator(map, map.getTile(startX, startY));
+        builder.reset();
+        labyrinth = new LabyrinthGenerator(builder, map.getTile(startX, startY));
 
         recalibrateCamera();
     }
@@ -211,11 +219,10 @@ public class LGenGame extends ApplicationAdapter {
     private void recalibrateCamera() {
         if (GridType.HEX.equals(gridType)) {
             camera.position.set(mapBuilder.getWidth() * TILE_SIZE / 2.f - mapBuilder.getWidth(), mapBuilder.getHeight() * Hexagon.h, 0);
-            camera.zoom = (float) (0.21 * (Math.max(mapBuilder.getWidth(), mapBuilder.getHeight())));
         } else {
             camera.position.set(mapBuilder.getWidth() * TILE_SIZE / 2.f, mapBuilder.getHeight() * TILE_SIZE / 2.f, 0);
-            camera.zoom = (float) (0.21 * (Math.max(mapBuilder.getWidth(), mapBuilder.getHeight())));
         }
+        camera.zoom = (float) (0.21 * (Math.max(mapBuilder.getWidth(), mapBuilder.getHeight())));
 
     }
 

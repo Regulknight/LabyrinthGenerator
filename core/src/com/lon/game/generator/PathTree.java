@@ -2,8 +2,12 @@ package com.lon.game.generator;
 
 import com.lon.game.tile.Tile;
 import com.lon.game.tile.TileType;
+import com.lon.game.world.TileGrid;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class PathTree {
     private final int pathLength;
@@ -41,15 +45,15 @@ public class PathTree {
         this.tileList.add(tile);
     }
 
-    public boolean grow() {
-        return growCurrentTree() | growActiveChildren() | growNewChildren();
+    public boolean grow(TileGrid map) {
+        return growCurrentTree(map) | growActiveChildren(map) | growNewChildren(map);
     }
 
-    private boolean growActiveChildren() {
+    private boolean growActiveChildren(TileGrid map) {
         boolean result = false;
 
         for (PathTree child : activeChildList) {
-            boolean growStatus = child.grow();
+            boolean growStatus = child.grow(map);
             if (!growStatus) {
                 closedChildList.add(child);
             }
@@ -61,10 +65,10 @@ public class PathTree {
         return result;
     }
 
-    private boolean growCurrentTree() {
+    private boolean growCurrentTree(TileGrid map) {
         boolean result = false;
-        if (builder.isAbleToBuild(getTail())) {
-            List<Tile> cellsForGrowing = builder.getCellsForGrowing(this);
+        if (builder.isAbleToBuild(map, getTail())) {
+            List<Tile> cellsForGrowing = builder.getCellsForGrowing(map, this);
 
             for (Tile tile : cellsForGrowing) {
                 tile.setRemoteness(pathLength + tileList.size());
@@ -77,8 +81,8 @@ public class PathTree {
         return result;
     }
 
-    private boolean growNewChildren() {
-        List<Tile> tileList = getTileForBranching();
+    private boolean growNewChildren(TileGrid map) {
+        List<Tile> tileList = getTileForBranching(map);
 
         if (!tileList.isEmpty()) {
             Collections.shuffle(tileList);
@@ -95,21 +99,22 @@ public class PathTree {
         return false;
     }
 
-    private List<Tile> getTileForBranching() {
+    private List<Tile> getTileForBranching(TileGrid map) {
         List<Tile> result = new LinkedList<>();
 
-        for (Tile tile : this.tileList) {
-            if (builder.isAbleToBuild(tile)) {
+        for (int i = 0; i < tileList.size() - 2; i ++) {
+            Tile tile = tileList.get(i);
+            if (builder.isAbleToBuild(map, tile)) {
                 result.add(tile);
             }
         }
 
         for (PathTree activeChild : activeChildList) {
-            result.addAll(activeChild.getTileForBranching());
+            result.addAll(activeChild.getTileForBranching(map));
         }
 
         for (PathTree closedChild : closedChildList) {
-            result.addAll(closedChild.getTileForBranching());
+            result.addAll(closedChild.getTileForBranching(map));
         }
 
         return result;

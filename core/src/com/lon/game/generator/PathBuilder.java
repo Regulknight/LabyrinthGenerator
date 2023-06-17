@@ -19,25 +19,24 @@ public class PathBuilder {
 
     private final Map<Float, ConeOfView> directionConesOfView = new HashMap<>();
 
-    private final DirectionChooser chooser = new RotateDirectionChooser();
-    private final TileGrid map;
+    private final DirectionChooser chooser;
 
-    public PathBuilder(TileGrid map) {
-        this.map = map;
+    public PathBuilder(DirectionChooser chooser) {
+        this.chooser = chooser;
 
         for (Float baseAngle: Directions.directionList()) {
             directionConesOfView.put(baseAngle, new ConeOfView(coneRadius, new Sector(baseAngle, angleOfView)));
         }
     }
 
-    public List<Tile> getCellsForGrowing(PathTree branch) {
+    public List<Tile> getCellsForGrowing(TileGrid map, PathTree branch) {
         List<Tile> result = new LinkedList<>();
 
         Tile tail = branch.getTail();
         List<Float> ableDirections = getAbleDirections(tail, map);
 
         if (!ableDirections.isEmpty()) {
-            result.add(getNextCell(tail, chooser.chooseDirection(ableDirections)));
+            result.add(getNextCell(map, tail, chooser.chooseDirection(ableDirections)));
         }
 
         return result;
@@ -56,11 +55,11 @@ public class PathBuilder {
         return result;
     }
 
-    public boolean isAbleToBuild(Tile tile) {
+    public boolean isAbleToBuild(TileGrid map, Tile tile) {
         return !getAbleDirections(tile, map).isEmpty();
     }
 
-    private Tile getNextCell(Tile tail, float direction) {
+    private Tile getNextCell(TileGrid map, Tile tail, float direction) {
         Vector2 vec = new Vector2(1, 0);
         vec = vec.rotateRad(direction).add(tail.getGridPosition());
 
