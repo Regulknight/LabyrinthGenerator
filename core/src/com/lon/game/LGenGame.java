@@ -14,10 +14,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.lon.game.tile.Hexagon;
 import com.lon.game.tile.TileType;
-import com.lon.game.utils.AverageCounter;
-import com.lon.game.utils.AverageCounterMap;
-import com.lon.game.utils.HexagonTileFactory;
-import com.lon.game.utils.SquareTileFactory;
+import com.lon.game.utils.*;
 import com.lon.game.world.GridType;
 import com.lon.game.world.TileGrid;
 import com.lon.game.world.LabyrinthGenerator;
@@ -68,7 +65,15 @@ public class LGenGame extends ApplicationAdapter {
         timeInfo.put(LEVEL_TIMER, new AverageCounter());
 
         world = new World(new Vector2(0, 0), false);
-        mapBuilder = new TileGridBuilder(new HexagonTileFactory(world, gridTileType), GRID_WIDTH, GRID_HEIGHT);
+
+        WorldTileFactory factory;
+
+        if (gridType == GridType.SQUARE)
+            factory = new SquareTileFactory(world, gridTileType);
+        else
+            factory = new HexagonTileFactory(world, gridTileType);
+
+        mapBuilder = new TileGridBuilder(factory, GRID_WIDTH, GRID_HEIGHT);
         mapBuilder.setHeightInc(GRID_HEIGHT_INC);
         mapBuilder.setWidthInc(GRID_WIDTH_INC);
 
