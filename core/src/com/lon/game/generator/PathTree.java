@@ -21,6 +21,7 @@ public abstract class PathTree {
         this.pathLength = rootPosition;
 
         add(root);
+        root.setType(TileType.FLOOR2);
 
         this.builder = builder;
     }

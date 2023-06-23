@@ -14,9 +14,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.lon.game.generator.NegativeMemoryPathBuilder;
 import com.lon.game.generator.direction.RandomDirectionChooser;
-import com.lon.game.generator.direction.RotateDirectionChooser;
 import com.lon.game.tile.Hexagon;
-import com.lon.game.tile.TileType;
 import com.lon.game.utils.*;
 import com.lon.game.world.GridType;
 import com.lon.game.world.LabyrinthGenerator;
@@ -36,7 +34,7 @@ public class LGenGame extends ApplicationAdapter {
     private static final int GRID_WIDTH_INC = 2;
     private static final int GRID_HEIGHT_INC = 2;
     private static final int LEVEL_CHANGE_SLEEP_TIMEOUT_MS= 3000;
-    private static final GridType gridType = GridType.HEX;
+    private static final GridType gridType = GridType.SQUARE;
 
     SpriteBatch batch;
     SpriteBatch hudBatch;

@@ -38,7 +38,7 @@ public class TileGrid implements Drawable {
                 if(isCircle(i, j))
                     row.add(tileFactory.createTile(new Vector2(j, i), TileType.WALL));
                 else
-                    row.add(tileFactory.createTile(new Vector2(j, i), TileType.FLOOR2));
+                    row.add(tileFactory.createTile(new Vector2(j, i), TileType.SKYBOX));
             }
             map.add(row);
         }
@@ -67,14 +67,6 @@ public class TileGrid implements Drawable {
 
     public Tile getTile(int x, int y) {
         return grid.get(y).get(x);
-    }
-
-    public void setTile(Tile tile, int x, int y) {
-        grid.get(y).set(x, tile);
-    }
-
-    public List<List<Tile>> getGrid() {
-        return grid;
     }
 
     public void render(Batch batch) {

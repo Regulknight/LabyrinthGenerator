@@ -25,6 +25,7 @@ public class HexTextureMap extends HashMap<String, Texture> {
     private void loadTexturesMapping() {
         put("floor", new Texture("hex-floor.png"));
         put("floor2", new Texture("hex-floor-2.png"));
+        put("skybox", new Texture("hex-skybox.png"));
         put("light", new Texture("light.png"));
         put("player", new Texture("player.png"));
         put("wall", new Texture("hex-wall.png"));
