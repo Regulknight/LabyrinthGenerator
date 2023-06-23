@@ -8,15 +8,13 @@ import com.lon.game.tile.TileType;
 
 public abstract class WorldTileFactory implements TileFactory {
     protected World world;
-    protected TileType type;
 
-    public WorldTileFactory(World world, TileType type) {
+    public WorldTileFactory(World world) {
         this.world = world;
-        this.type = type;
     }
 
     @Override
-    public Tile createTile(Vector2 position) {
+    public Tile createTile(Vector2 position, TileType type) {
         Body tileBody = type.equals(TileType.WALL) ? createTileBody(position) : null;
 
         return createTile(world, position, tileBody, type);

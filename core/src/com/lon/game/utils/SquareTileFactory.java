@@ -8,8 +8,8 @@ import com.lon.game.tile.TileType;
 
 public class SquareTileFactory extends WorldTileFactory {
 
-    public SquareTileFactory(World world, TileType type) {
-        super(world, type);
+    public SquareTileFactory(World world) {
+        super(world);
     }
 
     @Override

@@ -14,6 +14,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.lon.game.generator.NegativeMemoryPathBuilder;
 import com.lon.game.generator.direction.RandomDirectionChooser;
+import com.lon.game.generator.direction.RotateDirectionChooser;
 import com.lon.game.tile.Hexagon;
 import com.lon.game.tile.TileType;
 import com.lon.game.utils.*;
@@ -30,13 +31,12 @@ import static com.lon.game.world.WorldConstants.TILE_SIZE;
 public class LGenGame extends ApplicationAdapter {
     public static final String TOTAL_TIMER = "total_timer";
     public static final String LEVEL_TIMER = "level_timer";
-    public static int GRID_WIDTH = 20;
-    public static int GRID_HEIGHT = 10;
+    public static int GRID_WIDTH = 30;
+    public static int GRID_HEIGHT = 30;
     private static final int GRID_WIDTH_INC = 2;
     private static final int GRID_HEIGHT_INC = 2;
     private static final int LEVEL_CHANGE_SLEEP_TIMEOUT_MS= 3000;
-    private static final GridType gridType = GridType.SQUARE;
-    private static final TileType gridTileType = TileType.WALL;
+    private static final GridType gridType = GridType.HEX;
 
     SpriteBatch batch;
     SpriteBatch hudBatch;
@@ -94,9 +94,9 @@ public class LGenGame extends ApplicationAdapter {
         WorldTileFactory factory;
 
         if (gridType == GridType.SQUARE)
-            factory = new SquareTileFactory(world, gridTileType);
+            factory = new SquareTileFactory(world);
         else
-            factory = new HexagonTileFactory(world, gridTileType);
+            factory = new HexagonTileFactory(world);
 
         mapBuilder = new TileGridBuilder(factory, GRID_WIDTH, GRID_HEIGHT);
         mapBuilder.setHeightInc(GRID_HEIGHT_INC);

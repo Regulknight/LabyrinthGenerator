@@ -9,8 +9,8 @@ import com.lon.game.tile.Hexagon;
 
 public class HexagonTileFactory extends WorldTileFactory {
 
-    public HexagonTileFactory(World world, TileType type) {
-        super(world, type);
+    public HexagonTileFactory(World world) {
+        super(world);
     }
 
     @Override
