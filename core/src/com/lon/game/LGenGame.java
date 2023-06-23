@@ -13,6 +13,7 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.lon.game.generator.NegativeMemoryPathBuilder;
+import com.lon.game.generator.direction.MemoryDirectionChooser;
 import com.lon.game.generator.direction.RandomDirectionChooser;
 import com.lon.game.tile.Hexagon;
 import com.lon.game.utils.*;
@@ -34,7 +35,7 @@ public class LGenGame extends ApplicationAdapter {
     private static final int GRID_WIDTH_INC = 2;
     private static final int GRID_HEIGHT_INC = 2;
     private static final int LEVEL_CHANGE_SLEEP_TIMEOUT_MS= 3000;
-    private static final GridType gridType = GridType.SQUARE;
+    private static final GridType gridType = GridType.HEX;
 
     SpriteBatch batch;
     SpriteBatch hudBatch;
