@@ -15,9 +15,13 @@ public abstract class WorldTileFactory implements TileFactory {
 
     @Override
     public Tile createTile(Vector2 position, TileType type) {
-        Body tileBody = type.equals(TileType.WALL) ? createTileBody(position) : null;
+        Body tileBody = isSolid(type) ? createTileBody(position) : null;
 
         return createTile(world, position, tileBody, type);
+    }
+
+    private boolean isSolid(TileType type) {
+        return type == TileType.WALL || TileType.purple.contains(type);
     }
 
     protected abstract Tile createTile(World world, Vector2 position, Body tileBody, TileType type);

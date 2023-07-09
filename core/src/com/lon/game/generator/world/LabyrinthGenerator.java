@@ -1,12 +1,13 @@
-package com.lon.game.world;
+package com.lon.game.generator.world;
 
 import com.lon.game.generator.CounterPathTree;
 import com.lon.game.generator.PathBuilder;
 import com.lon.game.generator.PathTree;
 import com.lon.game.tile.Tile;
 import com.lon.game.tile.TileType;
+import com.lon.game.world.TileGrid;
 
-public class LabyrinthGenerator{
+public class LabyrinthGenerator implements WorldStateGenerator{
     private final PathTree pathThree;
     private Tile exit;
     private boolean growingFlag = true;

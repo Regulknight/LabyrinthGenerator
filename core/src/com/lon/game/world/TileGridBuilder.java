@@ -1,8 +1,12 @@
 package com.lon.game.world;
 
-import com.lon.game.utils.WorldTileFactory;
+import com.badlogic.gdx.physics.box2d.World;
+import com.lon.game.generator.type.RandomTypeStrategy;
+import com.lon.game.generator.type.TypeStrategy;
+import com.lon.game.utils.*;
 
 public class TileGridBuilder {
+    private final TypeStrategy typeStrategy;
     private WorldTileFactory tileFactory;
     private int width;
     private int height;
@@ -10,8 +14,15 @@ public class TileGridBuilder {
     private int widthInc = 0;
     private int heightInc = 0;
 
-    public TileGridBuilder(WorldTileFactory tileFactory, int width, int height) {
-        this.tileFactory = tileFactory;
+    public TileGridBuilder(World world, GridType gridType, int width, int height) {
+        if (gridType == GridType.SQUARE)
+            tileFactory = new SquareTileFactory(world);
+        else
+            tileFactory = new HexagonTileFactory(world);
+
+//        typeStrategy = new PurpleCircleTypeStrategy(width,height,3);
+        typeStrategy = new RandomTypeStrategy();
+
         this.width = width;
         this.height = height;
     }
@@ -41,7 +52,7 @@ public class TileGridBuilder {
     }
 
     public TileGrid build() {
-        TileGrid result = new TileGrid(width, height, tileFactory);
+        TileGrid result = new TileGrid(width, height, tileFactory, typeStrategy);
 
         width += widthInc;
         height += heightInc;

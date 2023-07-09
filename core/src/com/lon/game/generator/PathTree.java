@@ -21,7 +21,11 @@ public abstract class PathTree {
         this.pathLength = rootPosition;
 
         add(root);
-        root.setType(TileType.FLOOR2);
+
+        int colorIndex = TileType.purple.indexOf(root.getType());
+
+        if (colorIndex != -1)
+            root.setType(TileType.complementary.get(colorIndex));
 
         this.builder = builder;
     }
@@ -31,7 +35,11 @@ public abstract class PathTree {
     }
 
     public void add(Tile tile) {
-        tile.setType(TileType.FLOOR);
+        int colorIndex = TileType.purple.indexOf(tile.getType());
+
+        if (colorIndex != -1)
+            tile.setType(TileType.complementary.get(colorIndex));
+
         tile.destroyBody();
 
 

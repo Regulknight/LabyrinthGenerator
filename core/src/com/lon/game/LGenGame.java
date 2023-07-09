@@ -13,14 +13,13 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.lon.game.generator.NegativeMemoryPathBuilder;
-import com.lon.game.generator.direction.MemoryDirectionChooser;
 import com.lon.game.generator.direction.RandomDirectionChooser;
+import com.lon.game.generator.world.ColorRotateGenerator;
+import com.lon.game.generator.world.LabyrinthGenerator;
+import com.lon.game.generator.world.WorldStateGenerator;
 import com.lon.game.tile.Hexagon;
 import com.lon.game.utils.*;
-import com.lon.game.world.GridType;
-import com.lon.game.world.LabyrinthGenerator;
-import com.lon.game.world.TileGrid;
-import com.lon.game.world.TileGridBuilder;
+import com.lon.game.world.*;
 
 import java.util.concurrent.TimeUnit;
 
@@ -43,15 +42,12 @@ public class LGenGame extends ApplicationAdapter {
     World world;
     OrthographicCamera camera;
     Box2DDebugRenderer b2dr;
-
     HexTextureMap hexTextureMap;
     TextureMap textureMap;
     float timer = 0;
-
     RayHandler rayHandler;
-
-    LabyrinthGenerator labyrinth;
-
+    WorldStateGenerator colorGenerator;
+    WorldStateGenerator labyrinthGenerator;
     boolean generatorFlag = false;
 
     AverageCounterMap timeInfo = new AverageCounterMap();
@@ -90,14 +86,7 @@ public class LGenGame extends ApplicationAdapter {
     }
 
     private void createMapBuilder() {
-        WorldTileFactory factory;
-
-        if (gridType == GridType.SQUARE)
-            factory = new SquareTileFactory(world);
-        else
-            factory = new HexagonTileFactory(world);
-
-        mapBuilder = new TileGridBuilder(factory, GRID_WIDTH, GRID_HEIGHT);
+        mapBuilder = new TileGridBuilder(world, gridType, GRID_WIDTH, GRID_HEIGHT);
         mapBuilder.setHeightInc(GRID_HEIGHT_INC);
         mapBuilder.setWidthInc(GRID_WIDTH_INC);
     }
@@ -121,7 +110,8 @@ public class LGenGame extends ApplicationAdapter {
         ScreenUtils.clear(0, 0, 0, 1);
         if (generatorFlag) {
             long startTime = System.nanoTime();
-            boolean isGen = labyrinth.generationStep(map);
+            // boolean isGen = labyrinthGenerator.generationStep(map);
+            boolean isGen = colorGenerator.generationStep(map);
             long deltaTime = System.nanoTime() - startTime;
 
             timeInfo.update(deltaTime);
@@ -206,7 +196,9 @@ public class LGenGame extends ApplicationAdapter {
         map = mapBuilder.build();
 
         builder.reset();
-        labyrinth = new LabyrinthGenerator(builder, map.getTile(startX, startY));
+
+        labyrinthGenerator = new LabyrinthGenerator(builder, map.getTile(startX, startY));
+        colorGenerator = new ColorRotateGenerator();
 
         recalibrateCamera();
     }

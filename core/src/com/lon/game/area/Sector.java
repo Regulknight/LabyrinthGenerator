@@ -19,6 +19,13 @@ public class Sector implements Area{
         isCrossZeroAngle = isCrossZeroAngleFromTop || isCrossZeroAngleFromBottom;
     }
 
+    public Sector(Vector2 first, Vector2 second) {
+        leftBorderAngle = Angle.normalizeAngle(Angle.getAngle(first.x, first.y));
+        rightBorderAngle = Angle.normalizeAngle(Angle.getAngle(second.x, second.y));
+
+        isCrossZeroAngle =false;
+    }
+
     public boolean isContainPoint(Vector2 areaAttachPoint, Vector2 pointCoordinates) {
         float normalizedX = pointCoordinates.x - areaAttachPoint.x;
         float normalizedY = pointCoordinates.y - areaAttachPoint.y;
